@@ -1,17 +1,5 @@
 # envsubst [![Build status][travis-image]][travis-url] [![License][license-image]][license-url] [![GoDoc][godoc-img]][godoc-url]
-> Environment variables substitution for Go.
-
-
-|__Expression__     | __Meaning__    |
-| ----------------- | -------------- |
-|`${var}`	   | Value of var (same as $var)
-|`${var-$DEFAULT}`  | If var not set, evaluate expression as $DEFAULT
-|`${var:-$DEFAULT}` | If var not set or is empty, evaluate expression as $DEFAULT
-|`${var=$DEFAULT}`  | If var not set, evaluate expression as $DEFAULT
-|`${var:=$DEFAULT}` | If var not set or is empty, evaluate expression as $DEFAULT
-|`${var+$OTHER}`	   | If var set, evaluate expression as $OTHER, otherwise as empty string
-|`${var:+$OTHER}`   | If var set, evaluate expression as $OTHER, otherwise as empty string
-<sub>table taken from [here](http://www.tldp.org/LDP/abs/html/refcards.html#AEN22728)</sub>
+> Environment variables substitution for Go. see docs [below](#docs)
 
 #### Installation:
 ```sh
@@ -44,6 +32,20 @@ func main() {
     bres, err := envsubst.ReadFile("filename")
 }
 ```
+### Docs
+> api docs here: [![GoDoc][godoc-img]][godoc-url]
+
+|__Expression__     | __Meaning__    |
+| ----------------- | -------------- |
+|`${var}`	   | Value of var (same as $var)
+|`${var-$DEFAULT}`  | If var not set, evaluate expression as $DEFAULT
+|`${var:-$DEFAULT}` | If var not set or is empty, evaluate expression as $DEFAULT
+|`${var=$DEFAULT}`  | If var not set, evaluate expression as $DEFAULT
+|`${var:=$DEFAULT}` | If var not set or is empty, evaluate expression as $DEFAULT
+|`${var+$OTHER}`	   | If var set, evaluate expression as $OTHER, otherwise as empty string
+|`${var:+$OTHER}`   | If var set, evaluate expression as $OTHER, otherwise as empty string
+<sub>table taken from [here](http://www.tldp.org/LDP/abs/html/refcards.html#AEN22728)</sub>
+
 
 #### License
 MIT
