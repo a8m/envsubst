@@ -1,0 +1,7 @@
+# ...
+
+env: ${ENV:=dev}
+host: ${HOST:=localhost}
+region: ${REGION:=us-east-1}
+
+# ...
