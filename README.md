@@ -1,6 +1,18 @@
 # envsubst [![Build status][travis-image]][travis-url] [![License][license-image]][license-url] [![GoDoc][godoc-img]][godoc-url]
 > Environment variables substitution for Go.
 
+
+|__Expression__     | __Meaning__    |
+| ----------------- | -------------- |
+|`${var}`	   | Value of var (same as $var)
+|`${var-$DEFAULT}`  | If var not set, evaluate expression as $DEFAULT
+|`${var:-$DEFAULT}` | If var not set or is empty, evaluate expression as $DEFAULT
+|`${var=$DEFAULT}`  | If var not set, evaluate expression as $DEFAULT
+|`${var:=$DEFAULT}` | If var not set or is empty, evaluate expression as $DEFAULT
+|`${var+$OTHER}`	   | If var set, evaluate expression as $OTHER, otherwise as empty string
+|`${var:+$OTHER}`   | If var set, evaluate expression as $OTHER, otherwise as empty string
+<sub>table taken from [here](http://www.tldp.org/LDP/abs/html/refcards.html#AEN22728)</sub>
+
 #### Installation:
 ```sh
 $ go get github.com/a8m/envsubst/cmd/envsubst
@@ -14,7 +26,7 @@ $ substenv -help
 ```
 
 #### Using `envsubst` programmatically ?
-You can take a look on `\_example/main` or see the example below.
+You can take a look on [`_example/main`](https://github.com/a8m/envsubst/blob/master/_example/main.go) or see the example below.
 ```go
 package main
 
