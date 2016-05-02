@@ -37,7 +37,7 @@ func main() {
 
 |__Expression__     | __Meaning__    |
 | ----------------- | -------------- |
-|`${var}`	   | Value of var (same as $var)
+|`${var}`	   | Value of var (same as `$var`)
 |`${var-$DEFAULT}`  | If var not set, evaluate expression as $DEFAULT
 |`${var:-$DEFAULT}` | If var not set or is empty, evaluate expression as $DEFAULT
 |`${var=$DEFAULT}`  | If var not set, evaluate expression as $DEFAULT
