@@ -38,6 +38,8 @@ var parseTests = []parseTest{
 	{"if $var not set, use empty string +", "${NOTSET+hello}", "", false},
 	{"if $var not set, use empty string :+", "${NOTSET:+hello}", "", false},
 	{"multi line string", "hello $BAR\nhello ${EMPTY:=$FOO}", "hello bar\nhello foo", false},
+	{"issue #1", "${hello:=wo_rld} ${foo:=bar_baz}", "wo_rld bar_baz", false},
+	{"issue #2", "name: ${NAME:=foo_qux}, key: ${EMPTY:=baz_bar}", "name: foo_qux, key: baz_bar", false},
 	// bad substitution
 	{"closing brace expected", "hello ${", "", true},
 }
