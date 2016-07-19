@@ -96,6 +96,7 @@ func (l *lexer) backup() {
 // emit passes an item back to the client.
 func (l *lexer) emit(t itemType) {
 	l.items <- item{t, l.start, l.input[l.start:l.pos]}
+	l.lastPos = l.start
 	l.start = l.pos
 }
 
@@ -115,7 +116,6 @@ func (l *lexer) errorf(format string, args ...interface{}) stateFn {
 // Called by the parser, not in the lexing goroutine.
 func (l *lexer) nextItem() item {
 	item := <-l.items
-	l.lastPos = item.pos
 	return item
 }
 
