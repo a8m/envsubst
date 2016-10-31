@@ -1,14 +1,13 @@
 package parse
 
 import (
-	"os"
 	"testing"
 )
 
-func init() {
-	os.Setenv("BAR", "bar")
-	os.Setenv("FOO", "foo")
-	os.Setenv("EMPTY", "")
+var FakeEnv = []string{
+	"BAR=bar",
+	"FOO=foo",
+	"EMPTY=",
 }
 
 type parseTest struct {
@@ -46,7 +45,7 @@ var parseTests = []parseTest{
 
 func TestParse(t *testing.T) {
 	for _, test := range parseTests {
-		result, err := New(test.name).Parse(test.input)
+		result, err := New(test.name, FakeEnv).Parse(test.input)
 		hasErr := err != nil
 		if hasErr != test.hasErr {
 			t.Errorf("%s=(error): got\n\t%v\nexpected\n\t%v", test.name, hasErr, test.hasErr)

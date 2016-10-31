@@ -8,6 +8,7 @@ import (
 
 type Parser struct {
 	Name string // name of the processing template
+	Env  Env
 	// parsing state;
 	lex       *lexer
 	token     [3]item // three-token lookahead
@@ -16,9 +17,10 @@ type Parser struct {
 }
 
 // New allocates a new Parser with the given name.
-func New(name string) *Parser {
+func New(name string, env []string) *Parser {
 	return &Parser{
 		Name: name,
+		Env:  Env(env),
 	}
 }
 
@@ -49,7 +51,7 @@ Loop:
 		case itemError:
 			return p.errorf(t.val)
 		case itemVariable:
-			varNode := NewVariable(strings.TrimPrefix(t.val, "$"))
+			varNode := NewVariable(strings.TrimPrefix(t.val, "$"), p.Env)
 			p.nodes = append(p.nodes, varNode)
 		case itemLeftDelim:
 			if p.peek().typ == itemVariable {
@@ -73,7 +75,7 @@ Loop:
 func (p *Parser) action() (Node, error) {
 	var expType itemType
 	var defaultNode Node
-	varNode := NewVariable(p.next().val)
+	varNode := NewVariable(p.next().val, p.Env)
 Loop:
 	for {
 		switch t := p.next(); t.typ {
@@ -82,7 +84,7 @@ Loop:
 		case itemError:
 			return nil, p.errorf(t.val)
 		case itemVariable:
-			defaultNode = NewVariable(strings.TrimPrefix(t.val, "$"))
+			defaultNode = NewVariable(strings.TrimPrefix(t.val, "$"), p.Env)
 		case itemText:
 			n := NewText(t.val)
 			// patch to accept all kind of chars

@@ -1,9 +1,5 @@
 package parse
 
-import (
-	"os"
-)
-
 type Node interface {
 	Type() NodeType
 	String() string
@@ -40,19 +36,19 @@ func (t *TextNode) String() string {
 type VariableNode struct {
 	NodeType
 	Ident string
+	Env   Env
 }
 
-func NewVariable(ident string) *VariableNode {
-	return &VariableNode{NodeVariable, ident}
+func NewVariable(ident string, env Env) *VariableNode {
+	return &VariableNode{NodeVariable, ident, env}
 }
 
 func (t *VariableNode) String() string {
-	return os.Getenv(t.Ident)
+	return t.Env.Get(t.Ident)
 }
 
 func (t *VariableNode) isSet() bool {
-	_, isSet := os.LookupEnv(t.Ident)
-	return isSet
+	return t.Env.Has(t.Ident)
 }
 
 type SubstitutionNode struct {
