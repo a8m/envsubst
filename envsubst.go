@@ -1,20 +1,22 @@
 package envsubst
 
 import (
-	"github.com/a8m/envsubst/parse"
 	"io/ioutil"
+	"os"
+
+	"github.com/a8m/envsubst/parse"
 )
 
 // String returns the parsed template string after processing it.
 // If the parser encounters invalid input, it returns an error describing the failure.
 func String(s string) (string, error) {
-	return parse.New("string").Parse(s)
+	return parse.New("string", os.Environ()).Parse(s)
 }
 
 // Bytes returns the bytes represented by the parsed template after processing it.
 // If the parser encounters invalid input, it returns an error describing the failure.
 func Bytes(b []byte) ([]byte, error) {
-	s, err := parse.New("bytes").Parse(string(b))
+	s, err := parse.New("bytes", os.Environ()).Parse(string(b))
 	if err != nil {
 		return nil, err
 	}
