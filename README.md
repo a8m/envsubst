@@ -46,6 +46,9 @@ func main() {
 |`${var:+$OTHER}`   | If var set, evaluate expression as $OTHER, otherwise as empty string
 <sub>table taken from [here](http://www.tldp.org/LDP/abs/html/refcards.html#AEN22728)</sub>
 
+### See also
+
+* `os.ExpandEnv(s string) string` - only supports `$var` and `${var}` notations
 
 #### License
 MIT
