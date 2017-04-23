@@ -25,11 +25,11 @@ import (
 
 func main() {
     input := "welcom $HOME"
-    res, err := envsubst.String(input)
+    str, err := envsubst.String(input)
     // ...
-    bres, err := envsubst.Bytes([]byte(input))
+    buf, err := envsubst.Bytes([]byte(input))
     // ...
-    bres, err := envsubst.ReadFile("filename")
+    buf, err := envsubst.ReadFile("filename")
 }
 ```
 ### Docs
