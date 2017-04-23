@@ -2,9 +2,10 @@ package main
 
 import (
 	"fmt"
+	"log"
+
 	"github.com/a8m/envsubst"
 	"gopkg.in/yaml.v2"
-	"log"
 )
 
 type Config struct {
