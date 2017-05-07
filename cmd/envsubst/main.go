@@ -5,9 +5,10 @@ import (
 	"bufio"
 	"flag"
 	"fmt"
-	"github.com/a8m/envsubst"
 	"io"
 	"os"
+
+	"github.com/a8m/envsubst"
 )
 
 var (
@@ -37,11 +38,11 @@ func main() {
 		defer file.Close()
 		reader = bufio.NewReader(file)
 	} else {
-		if stat, err := os.Stdin.Stat(); err == nil && stat.Size() > 0 {
-			reader = bufio.NewReader(os.Stdin)
-		} else {
+		stat, err := os.Stdin.Stat()
+		if err != nil || (stat.Mode()&os.ModeCharDevice) != 0 {
 			usageAndExit("")
 		}
+		reader = bufio.NewReader(os.Stdin)
 	}
 	// Collect data
 	var data string
