@@ -9,8 +9,8 @@ $ go get github.com/a8m/envsubst/cmd/envsubst
 #### Using via cli
 ```sh
 $ envsubst < input.tmpl > output.text
-$ echo 'welcom $HOME ${USER:=a8m}' | substenv
-$ substenv -help
+$ echo 'welcome $HOME ${USER:=a8m}' | envsubst
+$ envsubst -help
 ```
 
 #### Using `envsubst` programmatically ?
