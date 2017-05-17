@@ -6,9 +6,20 @@ import (
 	"strings"
 )
 
+type Restrictions struct {
+	NoUnset bool
+	NoEmpty bool
+}
+
+var Relaxed = &Restrictions{false, false}
+var NoEmpty = &Restrictions{false, true}
+var NoUnset = &Restrictions{true, false}
+var Strict = &Restrictions{true, true}
+
 type Parser struct {
-	Name string // name of the processing template
-	Env  Env
+	Name     string // name of the processing template
+	Env      Env
+	Restrict *Restrictions
 	// parsing state;
 	lex       *lexer
 	token     [3]item // three-token lookahead
@@ -17,10 +28,15 @@ type Parser struct {
 }
 
 // New allocates a new Parser with the given name.
-func New(name string, env []string) *Parser {
+func New(name string, env []string, noUnset, noEmpty bool) *Parser {
+	return newRestricted(name, env, &Restrictions{noUnset, noEmpty})
+}
+
+func newRestricted(name string, env []string, r *Restrictions) *Parser {
 	return &Parser{
-		Name: name,
-		Env:  Env(env),
+		Name:     name,
+		Env:      Env(env),
+		Restrict: r,
 	}
 }
 
@@ -35,7 +51,11 @@ func (p *Parser) Parse(text string) (string, error) {
 	}
 	var out string
 	for _, node := range p.nodes {
-		out += node.String()
+		s, err := node.String()
+		if err != nil {
+			return out, err
+		}
+		out += s
 	}
 	return out, nil
 }
@@ -96,7 +116,7 @@ Loop:
 			expType = t.typ
 		}
 	}
-	return &SubstitutionNode{NodeSubstitution, expType, varNode, defaultNode}, nil
+	return &SubstitutionNode{NodeSubstitution, expType, varNode, defaultNode, p.Restrict}, nil
 }
 
 func (p *Parser) errorf(s string) error {

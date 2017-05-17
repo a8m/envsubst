@@ -13,6 +13,16 @@ $ echo 'welcome $HOME ${USER:=a8m}' | envsubst
 $ envsubst -help
 ```
 
+#### Imposing restrictions
+There are two command line flags with which you can cause the substitution to stop with an error code, should the restriction associated with the flag not be met. This can be handy if you want to avoid creating e.g. configuration files with unset or empty parameters. The flags and their restrictions are: 
+
+|__Flag__     | __Meaning__    |
+| ------------| -------------- |
+|`-no-unset`  | fail if a variable is not set
+|`-no-empty`  | fail if a variable is set but empty
+
+These flags can be combined to form tighter restrictions. 
+
 #### Using `envsubst` programmatically ?
 You can take a look on [`_example/main`](https://github.com/a8m/envsubst/blob/master/_example/main.go) or see the example below.
 ```go

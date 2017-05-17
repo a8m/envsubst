@@ -1,8 +1,13 @@
 package parse
 
+import (
+	"errors"
+	"fmt"
+)
+
 type Node interface {
 	Type() NodeType
-	String() string
+	String() (string, error)
 }
 
 // NodeType identifies the type of a node.
@@ -29,8 +34,8 @@ func NewText(text string) *TextNode {
 	return &TextNode{NodeText, text}
 }
 
-func (t *TextNode) String() string {
-	return t.Text
+func (t *TextNode) String() (string, error) {
+	return t.Text, nil
 }
 
 type VariableNode struct {
@@ -43,8 +48,8 @@ func NewVariable(ident string, env Env) *VariableNode {
 	return &VariableNode{NodeVariable, ident, env}
 }
 
-func (t *VariableNode) String() string {
-	return t.Env.Get(t.Ident)
+func (t *VariableNode) String() (string, error) {
+	return t.Env.Get(t.Ident), nil
 }
 
 func (t *VariableNode) isSet() bool {
@@ -56,25 +61,49 @@ type SubstitutionNode struct {
 	ExpType  itemType
 	Variable *VariableNode
 	Default  Node // Default could be variable or text
+	Restrict *Restrictions
 }
 
-func (t *SubstitutionNode) String() string {
+func (t *SubstitutionNode) String() (string, error) {
 	if t.ExpType >= itemPlus && t.Default != nil {
 		switch t.ExpType {
 		case itemColonDash, itemColonEquals:
-			if s := t.Variable.String(); s != "" {
-				return s
+			if s, _ := t.Variable.String(); s != "" {
+				return s, nil
 			}
-			return t.Default.String()
+			return t.validate(t.Default)
 		case itemPlus, itemColonPlus:
 			if t.Variable.isSet() {
-				return t.Default.String()
+				return t.validate(t.Default)
 			}
+			return "", nil
 		default:
 			if !t.Variable.isSet() {
-				return t.Default.String()
+				return t.validate(t.Default)
 			}
 		}
 	}
-	return t.Variable.String()
+	return t.validate(t.Variable)
+}
+
+func (t *SubstitutionNode) validate(node Node) (string, error) {
+	if err := t.validateNoUnset(node); err != nil {
+		return "", err
+	}
+	return t.validateNoEmpty(node)
+}
+
+func (t *SubstitutionNode) validateNoUnset(node Node) error {
+	if t.Restrict.NoUnset && node.Type() == NodeVariable && !node.(*VariableNode).isSet() {
+		return errors.New(fmt.Sprintf("variable ${%s} not set", t.Variable.Ident))
+	}
+	return nil
+}
+
+func (t *SubstitutionNode) validateNoEmpty(node Node) (string, error) {
+	value, _ := node.String()
+	if t.Restrict.NoEmpty && value == "" && (node.Type() != NodeVariable || node.(*VariableNode).isSet()) {
+		return "", errors.New(fmt.Sprintf("variable ${%s} set but empty", t.Variable.Ident))
+	}
+	return value, nil
 }
