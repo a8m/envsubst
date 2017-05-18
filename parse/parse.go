@@ -28,11 +28,7 @@ type Parser struct {
 }
 
 // New allocates a new Parser with the given name.
-func New(name string, env []string, noUnset, noEmpty bool) *Parser {
-	return newRestricted(name, env, &Restrictions{noUnset, noEmpty})
-}
-
-func newRestricted(name string, env []string, r *Restrictions) *Parser {
+func New(name string, env []string, r *Restrictions) *Parser {
 	return &Parser{
 		Name:     name,
 		Env:      Env(env),

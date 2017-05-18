@@ -1,7 +1,6 @@
 package parse
 
 import (
-	"errors"
 	"fmt"
 )
 
@@ -95,7 +94,7 @@ func (t *SubstitutionNode) validate(node Node) (string, error) {
 
 func (t *SubstitutionNode) validateNoUnset(node Node) error {
 	if t.Restrict.NoUnset && node.Type() == NodeVariable && !node.(*VariableNode).isSet() {
-		return errors.New(fmt.Sprintf("variable ${%s} not set", t.Variable.Ident))
+		return fmt.Errorf("variable ${%s} not set", t.Variable.Ident)
 	}
 	return nil
 }
@@ -103,7 +102,7 @@ func (t *SubstitutionNode) validateNoUnset(node Node) error {
 func (t *SubstitutionNode) validateNoEmpty(node Node) (string, error) {
 	value, _ := node.String()
 	if t.Restrict.NoEmpty && value == "" && (node.Type() != NodeVariable || node.(*VariableNode).isSet()) {
-		return "", errors.New(fmt.Sprintf("variable ${%s} set but empty", t.Variable.Ident))
+		return "", fmt.Errorf("variable ${%s} set but empty", t.Variable.Ident)
 	}
 	return value, nil
 }

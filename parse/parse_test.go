@@ -116,7 +116,7 @@ func TestParseStrict(t *testing.T) {
 
 func doTest(t *testing.T, m mode) {
 	for _, test := range parseTests {
-		result, err := newRestricted(test.name, FakeEnv, restrict[m]).Parse(test.input)
+		result, err := New(test.name, FakeEnv, restrict[m]).Parse(test.input)
 		hasErr := err != nil
 		if hasErr != test.hasErr[m] {
 			t.Errorf("%s=(error): got\n\t%v\nexpected\n\t%v\ninput: %s\nresult: %s\nerror: %v",
