@@ -12,15 +12,19 @@ import (
 )
 
 var (
-	input  = flag.String("i", "", "")
-	output = flag.String("o", "", "")
+	input   = flag.String("i", "", "")
+	output  = flag.String("o", "", "")
+	noUnset = flag.Bool("no-unset", false, "")
+	noEmpty = flag.Bool("no-empty", false, "")
 )
 
 var usage = `Usage: envsubst [options...] <input>
 Options:
-  -i  Specify file input, otherwise use last argument as input file. 
-      If no input file is specified, read from stdin.
-  -o  Specify file output. If none is specified, write to stdout.
+  -i         Specify file input, otherwise use last argument as input file. 
+             If no input file is specified, read from stdin.
+  -o         Specify file output. If none is specified, write to stdout.
+  -no-unset  Fail if a variable is not set.
+  -no-empty  Fail if a variable is set but empty.
 `
 
 func main() {
@@ -68,9 +72,9 @@ func main() {
 		file = os.Stdout
 	}
 	// Parse input string
-	result, err := envsubst.String(data)
+	result, err := envsubst.StringRestricted(data, *noUnset, *noEmpty)
 	if err != nil {
-		usageAndExit(fmt.Sprintf("envsubst error: %s.", err))
+		errorAndExit(err)
 	}
 	if _, err := file.WriteString(result); err != nil {
 		filename := *output
@@ -88,5 +92,10 @@ func usageAndExit(msg string) {
 	}
 	flag.Usage()
 	fmt.Fprintf(os.Stderr, "\n")
+	os.Exit(1)
+}
+
+func errorAndExit(e error) {
+	fmt.Fprintf(os.Stderr, "%v\n\n", e.Error())
 	os.Exit(1)
 }
