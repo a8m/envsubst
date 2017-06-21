@@ -54,6 +54,7 @@ func main() {
 		line, err := reader.ReadString('\n')
 		if err != nil {
 			if err == io.EOF {
+				data += line
 				break
 			}
 			usageAndExit("Failed to read input.")
