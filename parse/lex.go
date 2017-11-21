@@ -217,7 +217,7 @@ func lexSubstitution(l *lexer) stateFn {
 		case '+':
 			l.emit(itemColonPlus)
 		default:
-			return l.errorf("expected '-', '=' or '+' after ':'")
+			l.emit(itemText)
 		}
 	default:
 		l.emit(itemText)

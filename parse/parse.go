@@ -103,9 +103,15 @@ Loop:
 			defaultNode = NewVariable(strings.TrimPrefix(t.val, "$"), p.Env)
 		case itemText:
 			n := NewText(t.val)
-			// patch to accept all kind of chars
-			for p.peek().typ != itemRightDelim {
-				n.Text += p.next().val
+		Text:
+			for {
+				switch p.peek().typ {
+				case itemRightDelim, itemError, itemEOF:
+					break Text
+				default:
+					// patch to accept all kind of chars
+					n.Text += p.next().val
+				}
 			}
 			defaultNode = n
 		default:
