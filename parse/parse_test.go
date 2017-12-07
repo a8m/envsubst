@@ -68,6 +68,9 @@ var parseTests = []parseTest{
 	// test specifically for failure modes
 	{"$var not set", "${NOTSET}", "", errUnset},
 	{"$var set to empty", "${EMPTY}", "", errEmpty},
+	// restrictions for plain variables without braces
+	{"gh-issue-9", "$NOTSET", "", errUnset},
+	{"gh-issue-9", "$EMPTY", "", errEmpty},
 
 	{"$var and $DEFAULT not set -", "${NOTSET-$ALSO_NOTSET}", "", errUnset},
 	{"$var and $DEFAULT not set :-", "${NOTSET:-$ALSO_NOTSET}", "", errUnset},
