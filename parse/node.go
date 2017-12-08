@@ -77,7 +77,6 @@ func (t *VariableNode) validateNoEmpty(value string) error {
 	return nil
 }
 
-//
 type SubstitutionNode struct {
 	NodeType
 	ExpType  itemType
