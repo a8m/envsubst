@@ -67,7 +67,7 @@ Loop:
 		case itemError:
 			return p.errorf(t.val)
 		case itemVariable:
-			varNode := NewVariable(strings.TrimPrefix(t.val, "$"), p.Env)
+			varNode := NewVariable(strings.TrimPrefix(t.val, "$"), p.Env, p.Restrict)
 			p.nodes = append(p.nodes, varNode)
 		case itemLeftDelim:
 			if p.peek().typ == itemVariable {
@@ -91,7 +91,7 @@ Loop:
 func (p *Parser) action() (Node, error) {
 	var expType itemType
 	var defaultNode Node
-	varNode := NewVariable(p.next().val, p.Env)
+	varNode := NewVariable(p.next().val, p.Env, p.Restrict)
 Loop:
 	for {
 		switch t := p.next(); t.typ {
@@ -100,7 +100,7 @@ Loop:
 		case itemError:
 			return nil, p.errorf(t.val)
 		case itemVariable:
-			defaultNode = NewVariable(strings.TrimPrefix(t.val, "$"), p.Env)
+			defaultNode = NewVariable(strings.TrimPrefix(t.val, "$"), p.Env, p.Restrict)
 		case itemText:
 			n := NewText(t.val)
 		Text:
@@ -118,7 +118,7 @@ Loop:
 			expType = t.typ
 		}
 	}
-	return &SubstitutionNode{NodeSubstitution, expType, varNode, defaultNode, p.Restrict}, nil
+	return &SubstitutionNode{NodeSubstitution, expType, varNode, defaultNode}, nil
 }
 
 func (p *Parser) errorf(s string) error {
