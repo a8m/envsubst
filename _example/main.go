@@ -4,7 +4,7 @@ import (
 	"fmt"
 	"log"
 
-	"github.com/a8m/envsubst"
+	"github.com/gostackit/envsubst"
 	"gopkg.in/yaml.v2"
 )
 

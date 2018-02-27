@@ -3,6 +3,7 @@ package envsubst
 import (
 	"io/ioutil"
 	"os"
+    "fmt"
 	"testing"
 )
 
@@ -25,6 +26,7 @@ func TestIntegration(t *testing.T) {
 	bytes, err = ReadFile("testdata/file.tmpl")
 	fexpected, err := ioutil.ReadFile("testdata/file.out")
 	if string(bytes) != string(fexpected) || err != nil {
+        fmt.Printf(string(bytes))
 		t.Error("Expect ReadFile integration test to pass")
 	}
 }

@@ -1,27 +1,12 @@
-# envsubst
-[![GoDoc][godoc-img]][godoc-url]
-[![License][license-image]][license-url]
-[![Build status][travis-image]][travis-url]
-[![Github All Releases][releases-image]][releases]
 
+# envsubst [![CircleCI](https://circleci.com/gh/gostackit/envsubst.svg?style=svg)](https://circleci.com/gh/gostackit/envsubst)
 > Environment variables substitution for Go. see docs [below](#docs)
 
 #### Installation:
 
-##### From binaries
-Latest stable `envsubst` [prebuilt binaries for 64-bit Linux, or Mac OS X][releases] are available via Github releases.
 
-###### Linux and MacOS
-```console
-curl -L https://github.com/a8m/envsubst/releases/download/v1.1.0/envsubst-`uname -s`-`uname -m` -o envsubst
-chmod +x envsubst
-sudo mv envsubst /usr/local/bin
-```
-
-###### Windows
-Download the latest prebuilt binary from [releases page][releases], or if you have curl installed:
-```console
-curl -L https://github.com/a8m/envsubst/releases/download/v1.1.0/envsubst.exe
+```sh
+$ go get github.com/gostackit/envsubst/cmd/envsubst
 ```
 
 ##### With go
@@ -33,9 +18,9 @@ go get github.com/a8m/envsubst/cmd/envsubst
 
 #### Using via cli
 ```sh
-envsubst < input.tmpl > output.text
-echo 'welcome $HOME ${USER:=a8m}' | envsubst
-envsubst -help
+$ envsubst < input.tmpl > output.text
+$ echo 'welcome $HOME ${USER:=gostackit}' | envsubst
+$ envsubst -help
 ```
 
 #### Imposing restrictions
@@ -49,13 +34,13 @@ There are two command line flags with which you can cause the substitution to st
 These flags can be combined to form tighter restrictions. 
 
 #### Using `envsubst` programmatically ?
-You can take a look on [`_example/main`](https://github.com/a8m/envsubst/blob/master/_example/main.go) or see the example below.
+You can take a look on [`_example/main`](https://github.com/gostackit/envsubst/blob/master/_example/main.go) or see the example below.
 ```go
 package main
 
 import (
 	"fmt"
-	"github.com/a8m/envsubst"
+	"github.com/gostackit/envsubst"
 )
 
 func main() {
@@ -90,11 +75,9 @@ func main() {
 #### License
 MIT
 
-[releases]: https://github.com/a8m/envsubst/releases
-[releases-image]: https://img.shields.io/github/downloads/a8m/envsubst/total.svg?style=for-the-badge
-[godoc-url]: https://godoc.org/github.com/a8m/envsubst
-[godoc-img]: https://img.shields.io/badge/godoc-reference-blue.svg?style=for-the-badge
-[license-image]: https://img.shields.io/badge/license-MIT-blue.svg?style=for-the-badge
+[godoc-url]: https://godoc.org/github.com/gostackit/envsubst
+[godoc-img]: https://img.shields.io/badge/godoc-reference-blue.svg?style=flat-square
+[license-image]: https://img.shields.io/badge/license-MIT-blue.svg?style=flat-square
 [license-url]: LICENSE
-[travis-image]: https://img.shields.io/travis/a8m/envsubst.svg?style=for-the-badge
-[travis-url]: https://travis-ci.org/a8m/envsubst
+[travis-image]: https://img.shields.io/travis/gostackit/envsubst.svg?style=flat-square
+[travis-url]: https://travis-ci.org/gostackit/envsubst
