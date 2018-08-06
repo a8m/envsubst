@@ -8,9 +8,9 @@ go get github.com/a8m/envsubst/cmd/envsubst
 
 The `envsubst` binary is also available via Github releases
 ```console
-curl -LO  https://github.com/a8m/envsubst/releases/download/v1.0.0/envsubst-linux-amd64
-chmod +x envsubst-linux-amd64
-sudo mv envsubst-linux-amd64 /usr/local/bin/envsubst
+curl -LO  https://github.com/a8m/envsubst/releases/download/v1.0.0/envsubst-`uname -s`-`uname -m`
+chmod +x envsubst-`uname -s`-`uname -m`
+sudo mv envsubst-`uname -s`-`uname -m` /usr/local/bin/envsubst
 ```
 
 
