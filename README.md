@@ -2,15 +2,24 @@
 > Environment variables substitution for Go. see docs [below](#docs)
 
 #### Installation:
-```sh
-$ go get github.com/a8m/envsubst/cmd/envsubst
+```console
+go get github.com/a8m/envsubst/cmd/envsubst
 ```
+
+The `envsubst` binary is also available via Github releases
+```console
+curl -LO  https://github.com/a8m/envsubst/releases/download/v1.0.0/envsubst-linux-amd64
+chmod +x envsubst-linux-amd64
+sudo mv envsubst-linux-amd64 /usr/local/bin/envsubst
+```
+
+
 
 #### Using via cli
 ```sh
-$ envsubst < input.tmpl > output.text
-$ echo 'welcome $HOME ${USER:=a8m}' | envsubst
-$ envsubst -help
+envsubst < input.tmpl > output.text
+echo 'welcome $HOME ${USER:=a8m}' | envsubst
+envsubst -help
 ```
 
 #### Imposing restrictions
