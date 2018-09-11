@@ -151,7 +151,8 @@ Loop:
 			l.pos++
 			switch r := l.peek(); {
 			case r == '$':
-				l.ignore() // ignore the previous '$'.
+				// ignore the previous '$'.
+				l.ignore()
 				l.next()
 				l.emit(itemText)
 			case r == '{':

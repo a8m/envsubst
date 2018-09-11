@@ -64,6 +64,7 @@ func main() {
 |`${var+$OTHER}`    | If var set, evaluate expression as $OTHER, otherwise as empty string
 |`${var:+$OTHER}`   | If var set, evaluate expression as $OTHER, otherwise as empty string
 |`$$var`            | Escape expressions. Result will be `$var`. 
+
 <sub>Most of the rows in this table were taken from [here](http://www.tldp.org/LDP/abs/html/refcards.html#AEN22728)</sub>
 
 ### See also
