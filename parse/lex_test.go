@@ -81,13 +81,25 @@ var lexTests = []lexTest{
 		{itemVariable, 0, "world"},
 		{itemError, 0, "closing brace expected"},
 	}},
+	{"escaping $$var", "hello $$HOME", []item{
+		{itemText, 0, "hello "},
+		{itemText, 7, "$"},
+		{itemText, 8, "HOME"},
+		tEOF,
+	}},
+	{"escaping $${subst}", "hello $${HOME}", []item{
+		{itemText, 0, "hello "},
+		{itemText, 7, "$"},
+		{itemText, 8, "{HOME}"},
+		tEOF,
+	}},
 }
 
 func TestLex(t *testing.T) {
 	for _, test := range lexTests {
 		items := collect(&test)
 		if !equal(items, test.items, false) {
-			t.Errorf("%s: got\n\t%+v\nexpected\n\t%v", test.name, items, test.items)
+			t.Errorf("%s:\ninput\n\t%q\ngot\n\t%+v\nexpected\n\t%v", test.name, test.input, items, test.items)
 		}
 	}
 }

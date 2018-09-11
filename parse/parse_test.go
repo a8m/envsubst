@@ -99,6 +99,12 @@ var parseTests = []parseTest{
 	{"$var and $DEFAULT empty :=", "${EMPTY:=$ALSO_EMPTY}", "", errEmpty},
 	{"$var and $OTHER empty +", "${EMPTY+$ALSO_EMPTY}", "", errEmpty},
 	{"$var and $OTHER empty :+", "${EMPTY:+$ALSO_EMPTY}", "", errEmpty},
+
+	// escaping.
+	{"escape $$var", "FOO $$BAR BAZ", "FOO $BAR BAZ", errNone},
+	{"escape $${subst}", "FOO $${BAR} BAZ", "FOO ${BAR} BAZ", errNone},
+	{"escape $$$var", "$$$BAR", "$bar", errNone},
+	{"escape $$${subst}", "$$${BAZ:-baz}", "$baz", errNone},
 }
 
 func TestParse(t *testing.T) {
