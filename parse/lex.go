@@ -144,17 +144,24 @@ Loop:
 		switch r := l.next(); r {
 		case '$':
 			l.pos--
+			// emit the text we've found until here, if any.
 			if l.pos > l.start {
 				l.emit(itemText)
 			}
 			l.pos++
-			if r := l.next(); isAlphaNumeric(r) {
-				l.backup()
-				return lexVariable
-			} else if r == '{' {
+			switch r := l.peek(); {
+			case r == '$':
+				// ignore the previous '$'.
+				l.ignore()
+				l.next()
+				l.emit(itemText)
+			case r == '{':
+				l.next()
 				l.subsDepth++
 				l.emit(itemLeftDelim)
 				return lexSubstitution
+			case isAlphaNumeric(r):
+				return lexVariable
 			}
 		case eof:
 			break Loop
