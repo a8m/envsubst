@@ -14,6 +14,7 @@ import (
 var (
 	input   = flag.String("i", "", "")
 	output  = flag.String("o", "", "")
+	inplace = flag.Bool("w", false, "")
 	noUnset = flag.Bool("no-unset", false, "")
 	noEmpty = flag.Bool("no-empty", false, "")
 )
@@ -23,6 +24,7 @@ Options:
   -i         Specify file input, otherwise use last argument as input file. 
              If no input file is specified, read from stdin.
   -o         Specify file output. If none is specified, write to stdout.
+  -w         Write result to input file (output is ignored).
   -no-unset  Fail if a variable is not set.
   -no-empty  Fail if a variable is set but empty.
 `
@@ -64,7 +66,15 @@ func main() {
 	// Writer
 	var file *os.File
 	var err error
-	if *output != "" {
+	if *inplace {
+		file, err = os.OpenFile(*input, os.O_WRONLY, 0666)
+		if err != nil {
+			usageAndExit(fmt.Sprintf(
+				"Error while opening input file for writing: %s.",
+				*input,
+			))
+		}
+	} else if *output != "" {
 		file, err = os.Create(*output)
 		if err != nil {
 			usageAndExit("Error to create the wanted output file.")
