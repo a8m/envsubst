@@ -3,23 +3,23 @@
 
 #### Installation:
 
-### From binaries
+##### From binaries
 Latest stable `envsubst` [prebuilt binaries for 64-bit Linux, or Mac OS X][releases] are available via Github releases.
 
-## Linux
+###### Linux
 ```console
 curl -L https://github.com/a8m/envsubst/releases/download/v1.1.0/envsubst-`uname -s`-`uname -m` -o envsubst
 chmod +x envsubst
 sudo mv envsubst /usr/local/bin
 ```
 
-## Windows
+###### Windows
 Download the latest prebuilt binary from [releases page][releases], or if you have curl installed:
 ```console
 curl -L https://github.com/a8m/envsubst/releases/download/v1.1.0/envsubst.exe
 ```
 
-### With go
+##### With go
 You can install via `go get` (provided you have installed go):
 ```console
 go get github.com/a8m/envsubst/cmd/envsubst
