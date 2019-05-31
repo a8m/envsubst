@@ -85,10 +85,10 @@ func main() {
 #### License
 MIT
 
+[releases]: https://github.com/a8m/envsubst/releases
 [godoc-url]: https://godoc.org/github.com/a8m/envsubst
 [godoc-img]: https://img.shields.io/badge/godoc-reference-blue.svg?style=flat-square
 [license-image]: https://img.shields.io/badge/license-MIT-blue.svg?style=flat-square
 [license-url]: LICENSE
 [travis-image]: https://img.shields.io/travis/a8m/envsubst.svg?style=flat-square
 [travis-url]: https://travis-ci.org/a8m/envsubst
-
