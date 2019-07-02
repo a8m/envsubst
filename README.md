@@ -1,4 +1,9 @@
-# envsubst [![Build status][travis-image]][travis-url] [![License][license-image]][license-url] [![GoDoc][godoc-img]][godoc-url]
+# envsubst
+[![GoDoc][godoc-img]][godoc-url]
+[![License][license-image]][license-url]
+[![Build status][travis-image]][travis-url]
+[![Github All Releases][releases-image]][releases]
+
 > Environment variables substitution for Go. see docs [below](#docs)
 
 #### Installation:
@@ -86,9 +91,10 @@ func main() {
 MIT
 
 [releases]: https://github.com/a8m/envsubst/releases
+[releases-image]: https://img.shields.io/github/downloads/a8m/envsubst/total.svg?style=for-the-badge
 [godoc-url]: https://godoc.org/github.com/a8m/envsubst
-[godoc-img]: https://img.shields.io/badge/godoc-reference-blue.svg?style=flat-square
-[license-image]: https://img.shields.io/badge/license-MIT-blue.svg?style=flat-square
+[godoc-img]: https://img.shields.io/badge/godoc-reference-blue.svg?style=for-the-badge
+[license-image]: https://img.shields.io/badge/license-MIT-blue.svg?style=for-the-badge
 [license-url]: LICENSE
-[travis-image]: https://img.shields.io/travis/a8m/envsubst.svg?style=flat-square
+[travis-image]: https://img.shields.io/travis/a8m/envsubst.svg?style=for-the-badge
 [travis-url]: https://travis-ci.org/a8m/envsubst
