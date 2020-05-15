@@ -11,10 +11,12 @@ type Restrictions struct {
 	NoEmpty bool
 }
 
-var Relaxed = &Restrictions{false, false}
-var NoEmpty = &Restrictions{false, true}
-var NoUnset = &Restrictions{true, false}
-var Strict = &Restrictions{true, true}
+var (
+	Relaxed = &Restrictions{false, false}
+	NoEmpty = &Restrictions{false, true}
+	NoUnset = &Restrictions{true, false}
+	Strict  = &Restrictions{true, true}
+)
 
 type Parser struct {
 	Name     string // name of the processing template
