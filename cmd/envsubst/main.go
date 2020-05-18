@@ -1,12 +1,17 @@
 // envsubst command line tool
 package main
 
+// BUG If -w fails, the restored original file may not have original file
+//     attributes.
+
 import (
 	"bufio"
 	"flag"
 	"fmt"
 	"io"
+	"io/ioutil"
 	"os"
+	"path/filepath"
 
 	"github.com/a8m/envsubst"
 )
@@ -14,6 +19,7 @@ import (
 var (
 	input   = flag.String("i", "", "")
 	output  = flag.String("o", "", "")
+	inplace = flag.Bool("w", false, "")
 	noUnset = flag.Bool("no-unset", false, "")
 	noEmpty = flag.Bool("no-empty", false, "")
 )
@@ -23,6 +29,7 @@ Options:
   -i         Specify file input, otherwise use last argument as input file. 
              If no input file is specified, read from stdin.
   -o         Specify file output. If none is specified, write to stdout.
+  -w         Write result to input file (output is ignored).
   -no-unset  Fail if a variable is not set.
   -no-empty  Fail if a variable is set but empty.
 `
@@ -63,8 +70,21 @@ func main() {
 	}
 	// Writer
 	var file *os.File
+	var backupFilename string
 	var err error
-	if *output != "" {
+	if *inplace {
+		file, err = os.OpenFile(*input, os.O_WRONLY, 0666)
+		if err != nil {
+			usageAndExit(fmt.Sprintf(
+				"Error while opening input file for writing: %s.",
+				*input,
+			))
+		}
+		backupFilename, err = backupFile(*input, data, 0644)
+		if err != nil {
+			errorAndExit(err)
+		}
+	} else if *output != "" {
 		file, err = os.Create(*output)
 		if err != nil {
 			usageAndExit("Error to create the wanted output file.")
@@ -82,8 +102,46 @@ func main() {
 		if filename == "" {
 			filename = "STDOUT"
 		}
+		if *inplace {
+			err = os.Rename(backupFilename, *input)
+			if err != nil {
+				fmt.Fprintf(os.Stderr,
+					"Failed to recover backup file %s", backupFilename)
+			}
+		}
 		usageAndExit(fmt.Sprintf("Error writing output to: %s.", filename))
 	}
+
+	if backupFilename != "" {
+		err = os.Remove(backupFilename)
+		if err != nil {
+			fmt.Fprintf(os.Stderr,
+				"Failed to remove backup file %s", backupFilename)
+		}
+	}
+}
+
+// backupFile writes data to a new file named <filename>_<number> with
+// permissions perm, with <number randomly chosen such that the file name is
+// unique. backupFile returns the chosen file name.
+func backupFile(filename string, data string, perm os.FileMode) (string, error) {
+	// create backup file
+	f, err := ioutil.TempFile(
+		filepath.Dir(filename),
+		filepath.Base(filename)+"_",
+	)
+	if err != nil {
+		return "", err
+	}
+	bakname := f.Name()
+
+	// write data to backup file
+	_, err = f.WriteString(data)
+	if err1 := f.Close(); err == nil {
+		err = err1
+	}
+
+	return bakname, err
 }
 
 func usageAndExit(msg string) {
