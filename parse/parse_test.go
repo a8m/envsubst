@@ -108,24 +108,28 @@ var parseTests = []parseTest{
 }
 
 func TestParse(t *testing.T) {
-	doTest(t, relaxed)
+	doTest(t, relaxed, true)
 }
 
 func TestParseNoUnset(t *testing.T) {
-	doTest(t, noUnset)
+	doTest(t, noUnset, true)
 }
 
 func TestParseNoEmpty(t *testing.T) {
-	doTest(t, noEmpty)
+	doTest(t, noEmpty, true)
 }
 
 func TestParseStrict(t *testing.T) {
-	doTest(t, strict)
+	doTest(t, strict, true)
 }
 
-func doTest(t *testing.T, m mode) {
+func TestParseStrictNoFailFast(t *testing.T) {
+	doTest(t, strict, false)
+}
+
+func doTest(t *testing.T, m mode, failFast bool) {
 	for _, test := range parseTests {
-		result, err := New(test.name, FakeEnv, restrict[m]).Parse(test.input)
+		result, err := New(test.name, FakeEnv, restrict[m]).Parse(test.input, failFast)
 		hasErr := err != nil
 		if hasErr != test.hasErr[m] {
 			t.Errorf("%s=(error): got\n\t%v\nexpected\n\t%v\ninput: %s\nresult: %s\nerror: %v",

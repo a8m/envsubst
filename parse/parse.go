@@ -65,7 +65,7 @@ func (p *Parser) Parse(text string, failOnfirst bool) (string, error) {
 		out += s
 	}
 	if allErrors != "" {
-		return out, fmt.Errorf("%s", allErrors)
+		return "", fmt.Errorf("%s", allErrors)
 	}
 	return out, nil
 }

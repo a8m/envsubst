@@ -13,9 +13,12 @@
             "cwd": "${workspaceFolder}",
             "env": {
               "FOO": "small_foo",
+              "BAR": ""
             },
             // "args": ["-i", "testdata/file.tmpl", "-no-unset", "-no-empty", "-fail-on-first"]
+            // "args": ["-i", "testdata/file.tmpl", "-no-empty", "-fail-on-first"]
             "args": ["-i", "testdata/file.tmpl", "-no-unset", "-no-empty"]
+            // "args": ["-i", "testdata/file.tmpl"]
         }
     ]
 }
