@@ -3,6 +3,7 @@ package parse
 
 import (
 	"errors"
+	"fmt"
 	"strings"
 )
 
@@ -41,19 +42,27 @@ func New(name string, env []string, r *Restrictions) *Parser {
 // Parse parses the given string.
 func (p *Parser) Parse(text string) (string, error) {
 	p.lex = lex(text)
+  // Build internal array of all unset or empty vars here
+  // TODO: build a custom error interface with slice for errorStrings
+	var errors []string
 	// clean parse state
 	p.nodes = make([]Node, 0)
 	p.peekCount = 0
 	if err := p.parse(); err != nil {
-		return "", err
+		errors = append(errors, fmt.Sprintf("%s\n", err.Error()))
+		// return "", [err]
 	}
 	var out string
 	for _, node := range p.nodes {
 		s, err := node.String()
 		if err != nil {
-			return out, err
+			errors = append(errors, fmt.Sprintf("%s\n", err.Error()))
+			// return out, err
 		}
 		out += s
+	}
+	if errors != nil {
+		return "", fmt.Errorf("%s", errors)
 	}
 	return out, nil
 }

@@ -12,19 +12,21 @@ import (
 )
 
 var (
-	input   = flag.String("i", "", "")
-	output  = flag.String("o", "", "")
-	noUnset = flag.Bool("no-unset", false, "")
-	noEmpty = flag.Bool("no-empty", false, "")
+	input       = flag.String("i", "", "")
+	output      = flag.String("o", "", "")
+	noUnset     = flag.Bool("no-unset", false, "")
+	noEmpty     = flag.Bool("no-empty", false, "")
+	failOnFirst = flag.Bool("fail-on-first", false, "")
 )
 
 var usage = `Usage: envsubst [options...] <input>
 Options:
-  -i         Specify file input, otherwise use last argument as input file. 
+  -i         Specify file input, otherwise use last argument as input file.
              If no input file is specified, read from stdin.
   -o         Specify file output. If none is specified, write to stdout.
   -no-unset  Fail if a variable is not set.
   -no-empty  Fail if a variable is set but empty.
+  -fail-on-first Fail on first error otherwise display all failures if restrictions are set.
 `
 
 func main() {
@@ -75,7 +77,14 @@ func main() {
 	// Parse input string
 	result, err := envsubst.StringRestricted(data, *noUnset, *noEmpty)
 	if err != nil {
-		errorAndExit(err)
+		if *failOnFirst {
+			// show first only
+			// err[0]
+			errorAndExit(err)
+		} else {
+			// Show all errors
+			fmt.Printf("%s", err)
+		}
 	}
 	if _, err := file.WriteString(result); err != nil {
 		filename := *output
