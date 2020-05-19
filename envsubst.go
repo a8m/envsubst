@@ -16,6 +16,7 @@ func String(s string) (string, error) {
 // StringRestricted returns the parsed template string after processing it.
 // If the parser encounters invalid input, or a restriction is violated, it returns
 // an error describing the failure.
+// Errors on first failure or returns a collection of failures if failOnFirst is false
 func StringRestricted(s string, noUnset, noEmpty, failOnfirst bool) (string, error) {
 	return parse.New("string", os.Environ(),
 		&parse.Restrictions{noUnset, noEmpty}).Parse(s, failOnfirst)

@@ -45,6 +45,7 @@ There are two command line flags with which you can cause the substitution to st
 | ------------| -------------- |
 |`-no-unset`  | fail if a variable is not set
 |`-no-empty`  | fail if a variable is set but empty
+|`-fail-on-first`  | fails at first occurence of an error, if `-no-empty` or `-no-unset` flags were **not** specified this is ignored
 
 These flags can be combined to form tighter restrictions. 
 
