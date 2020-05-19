@@ -40,29 +40,32 @@ func New(name string, env []string, r *Restrictions) *Parser {
 }
 
 // Parse parses the given string.
-func (p *Parser) Parse(text string) (string, error) {
+func (p *Parser) Parse(text string, failOnfirst bool) (string, error) {
 	p.lex = lex(text)
-  // Build internal array of all unset or empty vars here
-  // TODO: build a custom error interface with slice for errorStrings
-	var errors []string
+	// Build internal array of all unset or empty vars here
+	var allErrors string
 	// clean parse state
 	p.nodes = make([]Node, 0)
 	p.peekCount = 0
 	if err := p.parse(); err != nil {
-		errors = append(errors, fmt.Sprintf("%s\n", err.Error()))
-		// return "", [err]
+		if failOnfirst {
+			return "", err
+		}
+		allErrors += fmt.Sprintf("%s\n", err.Error())
 	}
 	var out string
 	for _, node := range p.nodes {
 		s, err := node.String()
 		if err != nil {
-			errors = append(errors, fmt.Sprintf("%s\n", err.Error()))
-			// return out, err
+			if failOnfirst {
+				return out, err
+			}
+			allErrors += fmt.Sprintf("%s\n", err.Error())
 		}
 		out += s
 	}
-	if errors != nil {
-		return "", fmt.Errorf("%s", errors)
+	if allErrors != "" {
+		return out, fmt.Errorf("%s", allErrors)
 	}
 	return out, nil
 }

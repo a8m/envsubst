@@ -75,16 +75,9 @@ func main() {
 		file = os.Stdout
 	}
 	// Parse input string
-	result, err := envsubst.StringRestricted(data, *noUnset, *noEmpty)
+	result, err := envsubst.StringRestricted(data, *noUnset, *noEmpty, *failOnFirst)
 	if err != nil {
-		if *failOnFirst {
-			// show first only
-			// err[0]
-			errorAndExit(err)
-		} else {
-			// Show all errors
-			fmt.Printf("%s", err)
-		}
+		errorAndExit(err)
 	}
 	if _, err := file.WriteString(result); err != nil {
 		filename := *output
