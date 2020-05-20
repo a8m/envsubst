@@ -19,7 +19,7 @@ func String(s string) (string, error) {
 // Errors on first failure or returns a collection of failures if failOnFirst is false
 func StringRestricted(s string, noUnset, noEmpty, failOnfirst bool) (string, error) {
 	return parse.New("string", os.Environ(),
-		&parse.Restrictions{noUnset, noEmpty}).Parse(s, failOnfirst)
+		&parse.Restrictions{noUnset, noEmpty, failOnfirst}).Parse(s)
 }
 
 // Bytes returns the bytes represented by the parsed template after processing it.
@@ -33,7 +33,7 @@ func Bytes(b []byte) ([]byte, error) {
 // an error describing the failure.
 func BytesRestricted(b []byte, noUnset, noEmpty, failOnfirst bool) ([]byte, error) {
 	s, err := parse.New("bytes", os.Environ(),
-		&parse.Restrictions{noUnset, noEmpty}).Parse(string(b), failOnfirst)
+		&parse.Restrictions{noUnset, noEmpty, failOnfirst}).Parse(string(b))
 	if err != nil {
 		return nil, err
 	}
