@@ -18,19 +18,22 @@ const (
 	noUnset
 	noEmpty
 	strict
+	allErrors
 )
 
 var restrict = map[mode]*Restrictions{
-	relaxed: Relaxed,
-	noUnset: NoUnset,
-	noEmpty: NoEmpty,
-	strict:  Strict,
+	relaxed:   Relaxed,
+	noUnset:   NoUnset,
+	noEmpty:   NoEmpty,
+	strict:    Strict,
+	allErrors: AllErrors,
 }
 
 var errNone = map[mode]bool{}
 var errUnset = map[mode]bool{noUnset: true, strict: true}
 var errEmpty = map[mode]bool{noEmpty: true, strict: true}
 var errAll = map[mode]bool{relaxed: true, noUnset: true, noEmpty: true, strict: true}
+var errAllFull = map[mode]bool{relaxed: true, noUnset: true, noEmpty: true, strict: true, allErrors: true}
 
 type parseTest struct {
 	name     string
@@ -107,27 +110,31 @@ var parseTests = []parseTest{
 	{"escape $$${subst}", "$$${BAZ:-baz}", "$baz", errNone},
 }
 
+var negativeParseTests = []parseTest{
+	{"$NOTSET, EMPTY and ALSO_EMPTY are displayed as in full output", "${NOTSET} and $EMPTY", "variable ${NOTSET} not set\nvariable ${EMPTY} set but empty\n", errAllFull},
+}
+
 func TestParse(t *testing.T) {
-	doTest(t, relaxed, true)
+	doTest(t, relaxed)
 }
 
 func TestParseNoUnset(t *testing.T) {
-	doTest(t, noUnset, true)
+	doTest(t, noUnset)
 }
 
 func TestParseNoEmpty(t *testing.T) {
-	doTest(t, noEmpty, true)
+	doTest(t, noEmpty)
 }
 
 func TestParseStrict(t *testing.T) {
-	doTest(t, strict, true)
+	doTest(t, strict)
 }
 
 func TestParseStrictNoFailFast(t *testing.T) {
-	doTest(t, strict, false)
+	doNegativeAssertTest(t, allErrors)
 }
 
-func doTest(t *testing.T, m mode, failFast bool) {
+func doTest(t *testing.T, m mode) {
 	for _, test := range parseTests {
 		result, err := New(test.name, FakeEnv, restrict[m]).Parse(test.input)
 		hasErr := err != nil
@@ -137,6 +144,20 @@ func doTest(t *testing.T, m mode, failFast bool) {
 		}
 		if result != test.expected {
 			t.Errorf("%s=(%q): got\n\t%v\nexpected\n\t%v", test.name, test.input, result, test.expected)
+		}
+	}
+}
+
+func doNegativeAssertTest(t *testing.T, m mode) {
+	for _, test := range negativeParseTests {
+		result, err := New(test.name, FakeEnv, restrict[m]).Parse(test.input)
+		hasErr := err != nil
+		if hasErr != test.hasErr[m] {
+			t.Errorf("%s=(error): got\n\t%v\nexpected\n\t%v\ninput: %s\nresult: %s\nerror: %v",
+				test.name, hasErr, test.hasErr[m], test.input, result, err)
+		}
+		if err.Error() != test.expected {
+			t.Errorf("%s=(%q): got\n\t%v\nexpected\n\t%v", test.name, test.input, err.Error(), test.expected)
 		}
 	}
 }

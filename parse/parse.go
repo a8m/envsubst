@@ -13,7 +13,6 @@ type Restrictions struct {
 	FailFast bool
 }
 
-//
 var (
 	Relaxed   = &Restrictions{false, false, true}
 	NoEmpty   = &Restrictions{false, true, true}
