@@ -50,21 +50,19 @@ func (p *Parser) Parse(text string) (string, error) {
 	p.nodes = make([]Node, 0)
 	p.peekCount = 0
 	if err := p.parse(); err != nil {
-		if !p.Restrict.FailFast {
-			allErrors += fmt.Sprintf("%s\n", err.Error())
-		} else {
+		if p.Restrict.FailFast {
 			return "", err
 		}
+		allErrors += fmt.Sprintf("%s\n", err.Error())
 	}
 	var out string
 	for _, node := range p.nodes {
 		s, err := node.String()
 		if err != nil {
-			if !p.Restrict.FailFast {
-				allErrors += fmt.Sprintf("%s\n", err.Error())
-			} else {
+			if p.Restrict.FailFast {
 				return out, err
 			}
+			allErrors += fmt.Sprintf("%s\n", err.Error())
 		}
 		out += s
 	}
