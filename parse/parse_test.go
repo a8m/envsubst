@@ -111,7 +111,7 @@ var parseTests = []parseTest{
 }
 
 var negativeParseTests = []parseTest{
-	{"$NOTSET, EMPTY and ALSO_EMPTY are displayed as in full output", "${NOTSET} and $EMPTY", "variable ${NOTSET} not set\nvariable ${EMPTY} set but empty\n", errAllFull},
+	{"$NOTSET and EMPTY are displayed as in full error output", "${NOTSET} and $EMPTY", "variable ${NOTSET} not set\nvariable ${EMPTY} set but empty\n", errAllFull},
 }
 
 func TestParse(t *testing.T) {
