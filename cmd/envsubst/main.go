@@ -9,6 +9,7 @@ import (
 	"os"
 
 	"github.com/a8m/envsubst"
+	"github.com/a8m/envsubst/parse"
 )
 
 var (
@@ -75,7 +76,11 @@ func main() {
 		file = os.Stdout
 	}
 	// Parse input string
-	result, err := envsubst.StringRestricted(data, *noUnset, *noEmpty, *failFast)
+	parserMode := parse.AllErrors
+	if *failFast {
+		parserMode = parse.Quick
+	}
+	result, err := envsubst.StringRestricted(data, *noUnset, *noEmpty, parserMode)
 	if err != nil {
 		errorAndExit(err)
 	}

@@ -7,24 +7,33 @@ import (
 	"strings"
 )
 
+type Mode int
+
 type Restrictions struct {
-	NoUnset  bool
-	NoEmpty  bool
-	FailFast bool
+	NoUnset bool
+	NoEmpty bool
 }
 
-var (
-	Relaxed   = &Restrictions{false, false, true}
-	NoEmpty   = &Restrictions{false, true, true}
-	NoUnset   = &Restrictions{true, false, true}
-	Strict    = &Restrictions{true, true, true}
-	AllErrors = &Restrictions{true, true, false}
+// Mode for parser behaviour
+const (
+	Quick     Mode = 1 << iota // stop parsing after first error encoutered and return
+	AllErrors                  // report all errors
 )
 
+// Restrictions specifier
+var (
+	Relaxed = &Restrictions{false, false}
+	NoEmpty = &Restrictions{false, true}
+	NoUnset = &Restrictions{true, false}
+	Strict  = &Restrictions{true, true}
+)
+
+// Parser type initializer
 type Parser struct {
 	Name     string // name of the processing template
 	Env      Env
 	Restrict *Restrictions
+	Mode     Mode
 	// parsing state;
 	lex       *lexer
 	token     [3]item // three-token lookahead
@@ -33,11 +42,12 @@ type Parser struct {
 }
 
 // New allocates a new Parser with the given name.
-func New(name string, env []string, r *Restrictions) *Parser {
+func New(name string, env []string, r *Restrictions, m Mode) *Parser {
 	return &Parser{
 		Name:     name,
 		Env:      Env(env),
 		Restrict: r,
+		Mode:     m,
 	}
 }
 
@@ -50,19 +60,23 @@ func (p *Parser) Parse(text string) (string, error) {
 	p.nodes = make([]Node, 0)
 	p.peekCount = 0
 	if err := p.parse(); err != nil {
-		if p.Restrict.FailFast {
+    switch *&p.Mode {
+		case Quick:
 			return "", err
+		case AllErrors:
+			allErrors += fmt.Sprintf("%s\n", err.Error())
 		}
-		allErrors += fmt.Sprintf("%s\n", err.Error())
 	}
 	var out string
 	for _, node := range p.nodes {
 		s, err := node.String()
 		if err != nil {
-			if p.Restrict.FailFast {
-				return out, err
+			switch *&p.Mode {
+			case Quick:
+				return "", err
+			case AllErrors:
+				allErrors += fmt.Sprintf("%s\n", err.Error())
 			}
-			allErrors += fmt.Sprintf("%s\n", err.Error())
 		}
 		out += s
 	}
@@ -71,6 +85,7 @@ func (p *Parser) Parse(text string) (string, error) {
 	}
 	return out, nil
 }
+
 
 // parse is the top-level parser for the template.
 // It runs to EOF and return an error if something isn't right.

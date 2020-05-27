@@ -18,22 +18,20 @@ const (
 	noUnset
 	noEmpty
 	strict
-	allErrors
 )
 
 var restrict = map[mode]*Restrictions{
-	relaxed:   Relaxed,
-	noUnset:   NoUnset,
-	noEmpty:   NoEmpty,
-	strict:    Strict,
-	allErrors: AllErrors,
+	relaxed: Relaxed,
+	noUnset: NoUnset,
+	noEmpty: NoEmpty,
+	strict:  Strict,
 }
 
 var errNone = map[mode]bool{}
 var errUnset = map[mode]bool{noUnset: true, strict: true}
 var errEmpty = map[mode]bool{noEmpty: true, strict: true}
 var errAll = map[mode]bool{relaxed: true, noUnset: true, noEmpty: true, strict: true}
-var errAllFull = map[mode]bool{relaxed: true, noUnset: true, noEmpty: true, strict: true, allErrors: true}
+var errAllFull = map[mode]bool{relaxed: true, noUnset: true, noEmpty: true, strict: true}
 
 type parseTest struct {
 	name     string
@@ -131,12 +129,12 @@ func TestParseStrict(t *testing.T) {
 }
 
 func TestParseStrictNoFailFast(t *testing.T) {
-	doNegativeAssertTest(t, allErrors)
+	doNegativeAssertTest(t, strict)
 }
 
 func doTest(t *testing.T, m mode) {
 	for _, test := range parseTests {
-		result, err := New(test.name, FakeEnv, restrict[m]).Parse(test.input)
+		result, err := New(test.name, FakeEnv, restrict[m], Quick).Parse(test.input)
 		hasErr := err != nil
 		if hasErr != test.hasErr[m] {
 			t.Errorf("%s=(error): got\n\t%v\nexpected\n\t%v\ninput: %s\nresult: %s\nerror: %v",
@@ -150,7 +148,7 @@ func doTest(t *testing.T, m mode) {
 
 func doNegativeAssertTest(t *testing.T, m mode) {
 	for _, test := range negativeParseTests {
-		result, err := New(test.name, FakeEnv, restrict[m]).Parse(test.input)
+		result, err := New(test.name, FakeEnv, restrict[m], AllErrors).Parse(test.input)
 		hasErr := err != nil
 		if hasErr != test.hasErr[m] {
 			t.Errorf("%s=(error): got\n\t%v\nexpected\n\t%v\ninput: %s\nresult: %s\nerror: %v",
