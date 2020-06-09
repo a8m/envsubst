@@ -16,8 +16,8 @@ type Restrictions struct {
 
 // Mode for parser behaviour
 const (
-	Quick     Mode = 1 << iota // stop parsing after first error encoutered and return
-	AllErrors                  // report all errors
+	Quick     Mode = iota // stop parsing after first error encoutered and return
+	AllErrors             // report all errors
 )
 
 // Restrictions specifier
@@ -47,7 +47,6 @@ func New(name string, env []string, r *Restrictions) *Parser {
 		Name:     name,
 		Env:      Env(env),
 		Restrict: r,
-		Mode:     1,
 	}
 }
 
