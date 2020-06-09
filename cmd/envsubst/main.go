@@ -8,7 +8,6 @@ import (
 	"io"
 	"os"
 
-	"github.com/a8m/envsubst"
 	"github.com/a8m/envsubst/parse"
 )
 
@@ -80,7 +79,11 @@ func main() {
 	if *failFast {
 		parserMode = parse.Quick
 	}
-	result, err := envsubst.StringRestricted(data, *noUnset, *noEmpty, parserMode)
+	restrictions := &parse.Restrictions{*noUnset, *noEmpty}
+
+	result, err := parse.NewCli("string", os.Environ(),
+		restrictions, parserMode).Parse(data)
+
 	if err != nil {
 		errorAndExit(err)
 	}

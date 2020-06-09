@@ -42,7 +42,17 @@ type Parser struct {
 }
 
 // New allocates a new Parser with the given name.
-func New(name string, env []string, r *Restrictions, m Mode) *Parser {
+func New(name string, env []string, r *Restrictions) *Parser {
+	return &Parser{
+		Name:     name,
+		Env:      Env(env),
+		Restrict: r,
+		Mode:     1, // Defaulting to Quick for backwards compatibility
+	}
+}
+
+// NewCli allocates a new Parser with the given name - exclusively used by Cli
+func NewCli(name string, env []string, r *Restrictions, m Mode) *Parser {
 	return &Parser{
 		Name:     name,
 		Env:      Env(env),
@@ -60,7 +70,7 @@ func (p *Parser) Parse(text string) (string, error) {
 	p.nodes = make([]Node, 0)
 	p.peekCount = 0
 	if err := p.parse(); err != nil {
-    switch *&p.Mode {
+		switch *&p.Mode {
 		case Quick:
 			return "", err
 		case AllErrors:
@@ -85,7 +95,6 @@ func (p *Parser) Parse(text string) (string, error) {
 	}
 	return out, nil
 }
-
 
 // parse is the top-level parser for the template.
 // It runs to EOF and return an error if something isn't right.
