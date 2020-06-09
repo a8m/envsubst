@@ -47,17 +47,7 @@ func New(name string, env []string, r *Restrictions) *Parser {
 		Name:     name,
 		Env:      Env(env),
 		Restrict: r,
-		Mode:     1, // Defaulting to Quick for backwards compatibility
-	}
-}
-
-// NewCli allocates a new Parser with the given name - exclusively used by Cli
-func NewCli(name string, env []string, r *Restrictions, m Mode) *Parser {
-	return &Parser{
-		Name:     name,
-		Env:      Env(env),
-		Restrict: r,
-		Mode:     m,
+		Mode:     1,
 	}
 }
 

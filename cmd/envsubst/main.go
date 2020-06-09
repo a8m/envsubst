@@ -81,8 +81,7 @@ func main() {
 	}
 	restrictions := &parse.Restrictions{*noUnset, *noEmpty}
 
-	result, err := parse.NewCli("string", os.Environ(),
-		restrictions, parserMode).Parse(data)
+	result, err := (*&parse.Parser{Name: "string", Env: os.Environ(), Restrict: restrictions, Mode: parserMode}).Parse(data)
 
 	if err != nil {
 		errorAndExit(err)
