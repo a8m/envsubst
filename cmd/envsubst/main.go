@@ -34,7 +34,6 @@ func main() {
 		fmt.Fprint(os.Stderr, fmt.Sprintf(usage))
 	}
 	flag.Parse()
-	// Reader
 	var reader *bufio.Reader
 	if *input != "" {
 		file, err := os.Open(*input)
@@ -50,7 +49,7 @@ func main() {
 		}
 		reader = bufio.NewReader(os.Stdin)
 	}
-	// Collect data
+	// Collect input data.
 	var data string
 	for {
 		line, err := reader.ReadString('\n')
@@ -63,9 +62,10 @@ func main() {
 		}
 		data += line
 	}
-	// Writer
-	var file *os.File
-	var err error
+	var (
+		err  error
+		file *os.File
+	)
 	if *output != "" {
 		file, err = os.Create(*output)
 		if err != nil {
@@ -80,9 +80,7 @@ func main() {
 		parserMode = parse.Quick
 	}
 	restrictions := &parse.Restrictions{*noUnset, *noEmpty}
-
-	result, err := (*&parse.Parser{Name: "string", Env: os.Environ(), Restrict: restrictions, Mode: parserMode}).Parse(data)
-
+	result, err := (&parse.Parser{Name: "string", Env: os.Environ(), Restrict: restrictions, Mode: parserMode}).Parse(data)
 	if err != nil {
 		errorAndExit(err)
 	}
