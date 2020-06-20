@@ -39,12 +39,18 @@ envsubst -help
 ```
 
 #### Imposing restrictions
-There are two command line flags with which you can cause the substitution to stop with an error code, should the restriction associated with the flag not be met. This can be handy if you want to avoid creating e.g. configuration files with unset or empty parameters. The flags and their restrictions are: 
+There are three command line flags with which you can cause the substitution to stop with an error code, should the restriction associated with the flag not be met. This can be handy if you want to avoid creating e.g. configuration files with unset or empty parameters.
+Setting a `-fail-fast` flag in conjunction with either no-unset or no-empty or both will result in a faster feedback loop, this can be especially useful when running through a large file or byte array input, otherwise a list of errors is returned.
 
-|__Flag__     | __Meaning__    |
-| ------------| -------------- |
-|`-no-unset`  | fail if a variable is not set
-|`-no-empty`  | fail if a variable is set but empty
+The flags and their restrictions are: 
+
+|__Option__     | __Meaning__    | __Type__ | __Default__  |
+| ------------| -------------- | ------------ | ------------ |
+|`-i`  | input file  | ```string | stdin``` | `stdin`
+|`-o`  | output file | ```string | stdout``` |  `stdout` 
+|`-no-unset`  | fail if a variable is not set | `flag` |  `false` 
+|`-no-empty`  | fail if a variable is set but empty | `flag` | `false`
+|`-fail-fast`  | fails at first occurence of an error, if `-no-empty` or `-no-unset` flags were **not** specified this is ignored | `flag` | `false`
 
 These flags can be combined to form tighter restrictions. 
 

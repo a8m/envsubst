@@ -3,14 +3,24 @@ package parse
 
 import (
 	"errors"
+	"fmt"
 	"strings"
 )
+
+type Mode int
 
 type Restrictions struct {
 	NoUnset bool
 	NoEmpty bool
 }
 
+// Mode for parser behaviour
+const (
+	Quick     Mode = iota // stop parsing after first error encoutered and return
+	AllErrors             // report all errors
+)
+
+// Restrictions specifier
 var (
 	Relaxed = &Restrictions{false, false}
 	NoEmpty = &Restrictions{false, true}
@@ -18,10 +28,12 @@ var (
 	Strict  = &Restrictions{true, true}
 )
 
+// Parser type initializer
 type Parser struct {
 	Name     string // name of the processing template
 	Env      Env
 	Restrict *Restrictions
+	Mode     Mode
 	// parsing state;
 	lex       *lexer
 	token     [3]item // three-token lookahead
@@ -41,19 +53,34 @@ func New(name string, env []string, r *Restrictions) *Parser {
 // Parse parses the given string.
 func (p *Parser) Parse(text string) (string, error) {
 	p.lex = lex(text)
+	// Build internal array of all unset or empty vars here
+	var allErrors string
 	// clean parse state
 	p.nodes = make([]Node, 0)
 	p.peekCount = 0
 	if err := p.parse(); err != nil {
-		return "", err
+		switch *&p.Mode {
+		case Quick:
+			return "", err
+		case AllErrors:
+			allErrors += fmt.Sprintf("%s\n", err.Error())
+		}
 	}
 	var out string
 	for _, node := range p.nodes {
 		s, err := node.String()
 		if err != nil {
-			return out, err
+			switch *&p.Mode {
+			case Quick:
+				return "", err
+			case AllErrors:
+				allErrors += fmt.Sprintf("%s\n", err.Error())
+			}
 		}
 		out += s
+	}
+	if allErrors != "" {
+		return "", fmt.Errorf("%s", allErrors)
 	}
 	return out, nil
 }
