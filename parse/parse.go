@@ -46,7 +46,7 @@ type Parser struct {
 func New(name string, env []string, r *Restrictions) *Parser {
 	return &Parser{
 		Name:     name,
-		Env:      Env(env),
+		Env:      NewSliceEnv(env),
 		Restrict: r,
 	}
 }

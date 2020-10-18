@@ -148,7 +148,7 @@ func doTest(t *testing.T, m mode) {
 
 func doNegativeAssertTest(t *testing.T, m mode) {
 	for _, test := range negativeParseTests {
-		result, err := (*&Parser{Name: test.name, Env: FakeEnv, Restrict: restrict[m], Mode: AllErrors}).Parse(test.input)
+		result, err := (*&Parser{Name: test.name, Env: SliceEnv(FakeEnv), Restrict: restrict[m], Mode: AllErrors}).Parse(test.input)
 		hasErr := err != nil
 		if hasErr != test.hasErr[m] {
 			t.Errorf("%s=(error): got\n\t%v\nexpected\n\t%v\ninput: %s\nresult: %s\nerror: %v",

@@ -80,7 +80,7 @@ func main() {
 		parserMode = parse.Quick
 	}
 	restrictions := &parse.Restrictions{*noUnset, *noEmpty}
-	result, err := (&parse.Parser{Name: "string", Env: os.Environ(), Restrict: restrictions, Mode: parserMode}).Parse(data)
+	result, err := (&parse.Parser{Name: "string", Env: parse.NewOsFunctorEnv(), Restrict: restrictions, Mode: parserMode}).Parse(data)
 	if err != nil {
 		errorAndExit(err)
 	}
