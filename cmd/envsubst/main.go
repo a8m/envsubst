@@ -12,21 +12,23 @@ import (
 )
 
 var (
-	input    = flag.String("i", "", "")
-	output   = flag.String("o", "", "")
-	noUnset  = flag.Bool("no-unset", false, "")
-	noEmpty  = flag.Bool("no-empty", false, "")
-	failFast = flag.Bool("fail-fast", false, "")
+	input       = flag.String("i", "", "")
+	output      = flag.String("o", "", "")
+	noUnset     = flag.Bool("no-unset", false, "")
+	noEmpty     = flag.Bool("no-empty", false, "")
+	failFast    = flag.Bool("fail-fast", false, "")
+	ignoreUnset = flag.Bool("ignore-unset", false, "")
 )
 
 var usage = `Usage: envsubst [options...] <input>
 Options:
-  -i         Specify file input, otherwise use last argument as input file.
-             If no input file is specified, read from stdin.
-  -o         Specify file output. If none is specified, write to stdout.
-  -no-unset  Fail if a variable is not set.
-  -no-empty  Fail if a variable is set but empty.
-  -fail-fast Fail on first error otherwise display all failures if restrictions are set.
+  -i            Specify file input, otherwise use last argument as input file.
+                If no input file is specified, read from stdin.
+  -o            Specify file output. If none is specified, write to stdout.
+  -no-unset     Fail if a variable is not set.
+  -no-empty     Fail if a variable is set but empty.
+  -fail-fast    Fail on first error otherwise display all failures if restrictions are set.
+  -ignore-unset Ignore the substitution if a variable is not set.
 `
 
 func main() {
@@ -79,7 +81,7 @@ func main() {
 	if *failFast {
 		parserMode = parse.Quick
 	}
-	restrictions := &parse.Restrictions{*noUnset, *noEmpty}
+	restrictions := &parse.Restrictions{*noUnset, *noEmpty, *ignoreUnset}
 	result, err := (&parse.Parser{Name: "string", Env: os.Environ(), Restrict: restrictions, Mode: parserMode}).Parse(data)
 	if err != nil {
 		errorAndExit(err)

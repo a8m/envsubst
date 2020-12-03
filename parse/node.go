@@ -53,6 +53,9 @@ func (t *VariableNode) String() (string, error) {
 		return "", err
 	}
 	value := t.Env.Get(t.Ident)
+	if value == "" && t.Restrict.IgnoreUnset {
+		return "$" + t.Ident, nil
+	}
 	if err := t.validateNoEmpty(value); err != nil {
 		return "", err
 	}
