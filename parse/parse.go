@@ -3,22 +3,23 @@ package parse
 
 import (
 	"errors"
-	"fmt"
 	"strings"
 )
 
+// A mode value is a set of flags (or 0). They control parser behavior.
 type Mode int
-
-type Restrictions struct {
-	NoUnset bool
-	NoEmpty bool
-}
 
 // Mode for parser behaviour
 const (
 	Quick     Mode = iota // stop parsing after first error encoutered and return
 	AllErrors             // report all errors
 )
+
+// The restrictions option controls the parsring restriction.
+type Restrictions struct {
+	NoUnset bool
+	NoEmpty bool
+}
 
 // Restrictions specifier
 var (
@@ -54,33 +55,40 @@ func New(name string, env []string, r *Restrictions) *Parser {
 func (p *Parser) Parse(text string) (string, error) {
 	p.lex = lex(text)
 	// Build internal array of all unset or empty vars here
-	var allErrors string
+	var errs []error
 	// clean parse state
 	p.nodes = make([]Node, 0)
 	p.peekCount = 0
 	if err := p.parse(); err != nil {
-		switch *&p.Mode {
+		switch p.Mode {
 		case Quick:
 			return "", err
 		case AllErrors:
-			allErrors += fmt.Sprintf("%s\n", err.Error())
+			errs = append(errs, err)
 		}
 	}
 	var out string
 	for _, node := range p.nodes {
 		s, err := node.String()
 		if err != nil {
-			switch *&p.Mode {
+			switch p.Mode {
 			case Quick:
 				return "", err
 			case AllErrors:
-				allErrors += fmt.Sprintf("%s\n", err.Error())
+				errs = append(errs, err)
 			}
 		}
 		out += s
 	}
-	if allErrors != "" {
-		return "", fmt.Errorf("%s", allErrors)
+	if len(errs) > 0 {
+		var b strings.Builder
+		for i, err := range errs {
+			if i > 0 {
+				b.WriteByte('\n')
+			}
+			b.WriteString(err.Error())
+		}
+		return "", errors.New(b.String())
 	}
 	return out, nil
 }
