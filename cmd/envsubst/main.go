@@ -8,23 +8,25 @@ import (
 	"io"
 	"os"
 
-	"github.com/a8m/envsubst"
+	"github.com/a8m/envsubst/parse"
 )
 
 var (
-	input   = flag.String("i", "", "")
-	output  = flag.String("o", "", "")
-	noUnset = flag.Bool("no-unset", false, "")
-	noEmpty = flag.Bool("no-empty", false, "")
+	input    = flag.String("i", "", "")
+	output   = flag.String("o", "", "")
+	noUnset  = flag.Bool("no-unset", false, "")
+	noEmpty  = flag.Bool("no-empty", false, "")
+	failFast = flag.Bool("fail-fast", false, "")
 )
 
 var usage = `Usage: envsubst [options...] <input>
 Options:
-  -i         Specify file input, otherwise use last argument as input file. 
+  -i         Specify file input, otherwise use last argument as input file.
              If no input file is specified, read from stdin.
   -o         Specify file output. If none is specified, write to stdout.
   -no-unset  Fail if a variable is not set.
   -no-empty  Fail if a variable is set but empty.
+  -fail-fast Fail on first error otherwise display all failures if restrictions are set.
 `
 
 func main() {
@@ -32,7 +34,6 @@ func main() {
 		fmt.Fprint(os.Stderr, fmt.Sprintf(usage))
 	}
 	flag.Parse()
-	// Reader
 	var reader *bufio.Reader
 	if *input != "" {
 		file, err := os.Open(*input)
@@ -48,7 +49,7 @@ func main() {
 		}
 		reader = bufio.NewReader(os.Stdin)
 	}
-	// Collect data
+	// Collect input data.
 	var data string
 	for {
 		line, err := reader.ReadString('\n')
@@ -61,9 +62,10 @@ func main() {
 		}
 		data += line
 	}
-	// Writer
-	var file *os.File
-	var err error
+	var (
+		err  error
+		file *os.File
+	)
 	if *output != "" {
 		file, err = os.Create(*output)
 		if err != nil {
@@ -73,7 +75,12 @@ func main() {
 		file = os.Stdout
 	}
 	// Parse input string
-	result, err := envsubst.StringRestricted(data, *noUnset, *noEmpty)
+	parserMode := parse.AllErrors
+	if *failFast {
+		parserMode = parse.Quick
+	}
+	restrictions := &parse.Restrictions{*noUnset, *noEmpty}
+	result, err := (&parse.Parser{Name: "string", Env: os.Environ(), Restrict: restrictions, Mode: parserMode}).Parse(data)
 	if err != nil {
 		errorAndExit(err)
 	}

@@ -31,6 +31,7 @@ var errNone = map[mode]bool{}
 var errUnset = map[mode]bool{noUnset: true, strict: true}
 var errEmpty = map[mode]bool{noEmpty: true, strict: true}
 var errAll = map[mode]bool{relaxed: true, noUnset: true, noEmpty: true, strict: true}
+var errAllFull = map[mode]bool{relaxed: true, noUnset: true, noEmpty: true, strict: true}
 
 type parseTest struct {
 	name     string
@@ -107,6 +108,10 @@ var parseTests = []parseTest{
 	{"escape $$${subst}", "$$${BAZ:-baz}", "$baz", errNone},
 }
 
+var negativeParseTests = []parseTest{
+	{"$NOTSET and EMPTY are displayed as in full error output", "${NOTSET} and $EMPTY", "variable ${NOTSET} not set\nvariable ${EMPTY} set but empty", errAllFull},
+}
+
 func TestParse(t *testing.T) {
 	doTest(t, relaxed)
 }
@@ -123,6 +128,10 @@ func TestParseStrict(t *testing.T) {
 	doTest(t, strict)
 }
 
+func TestParseStrictNoFailFast(t *testing.T) {
+	doNegativeAssertTest(t, strict)
+}
+
 func doTest(t *testing.T, m mode) {
 	for _, test := range parseTests {
 		result, err := New(test.name, FakeEnv, restrict[m]).Parse(test.input)
@@ -133,6 +142,20 @@ func doTest(t *testing.T, m mode) {
 		}
 		if result != test.expected {
 			t.Errorf("%s=(%q): got\n\t%v\nexpected\n\t%v", test.name, test.input, result, test.expected)
+		}
+	}
+}
+
+func doNegativeAssertTest(t *testing.T, m mode) {
+	for _, test := range negativeParseTests {
+		result, err := (*&Parser{Name: test.name, Env: FakeEnv, Restrict: restrict[m], Mode: AllErrors}).Parse(test.input)
+		hasErr := err != nil
+		if hasErr != test.hasErr[m] {
+			t.Errorf("%s=(error): got\n\t%v\nexpected\n\t%v\ninput: %s\nresult: %s\nerror: %v",
+				test.name, hasErr, test.hasErr[m], test.input, result, err)
+		}
+		if err.Error() != test.expected {
+			t.Errorf("%s=(%q): got\n\t%v\nexpected\n\t%v", test.name, test.input, err.Error(), test.expected)
 		}
 	}
 }
