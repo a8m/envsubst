@@ -1,0 +1,6 @@
+foo: bar
+baz: baz
+env: dev
+uri: http://bar.com/foo
+host: localhost
+macro: ${SYSTEMPATH}

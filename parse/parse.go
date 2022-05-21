@@ -31,10 +31,11 @@ var (
 
 // Parser type initializer
 type Parser struct {
-	Name     string // name of the processing template
-	Env      Env
-	Restrict *Restrictions
-	Mode     Mode
+	Name         string // name of the processing template
+	Env          Env
+	SelectedEnvs []string
+	Restrict     *Restrictions
+	Mode         Mode
 	// parsing state;
 	lex       *lexer
 	token     [3]item // three-token lookahead
@@ -43,11 +44,12 @@ type Parser struct {
 }
 
 // New allocates a new Parser with the given name.
-func New(name string, env []string, r *Restrictions) *Parser {
+func New(name string, env []string, r *Restrictions, selectedEnvs []string) *Parser {
 	return &Parser{
-		Name:     name,
-		Env:      Env(env),
-		Restrict: r,
+		Name:         name,
+		Env:          Env(env),
+		Restrict:     r,
+		SelectedEnvs: selectedEnvs,
 	}
 }
 
@@ -93,9 +95,24 @@ func (p *Parser) Parse(text string) (string, error) {
 	return out, nil
 }
 
+func isVarLookupable(value string, selectedEnvs []string) bool {
+	lookupable := true
+	if len(selectedEnvs) > 0 {
+		lookupable = false
+		for _, env := range selectedEnvs {
+			if env == value {
+				lookupable = true
+				break
+			}
+		}
+	}
+	return lookupable
+}
+
 // parse is the top-level parser for the template.
 // It runs to EOF and return an error if something isn't right.
 func (p *Parser) parse() error {
+	currentVariable := []string{}
 Loop:
 	for {
 		switch t := p.next(); t.typ {
@@ -104,15 +121,26 @@ Loop:
 		case itemError:
 			return p.errorf(t.val)
 		case itemVariable:
-			varNode := NewVariable(strings.TrimPrefix(t.val, "$"), p.Env, p.Restrict)
-			p.nodes = append(p.nodes, varNode)
+			if isVarLookupable(strings.TrimPrefix(t.val, "$"), p.SelectedEnvs) {
+				varNode := NewVariable(strings.TrimPrefix(t.val, "$"), p.Env, p.Restrict)
+				p.nodes = append(p.nodes, varNode)
+			}
 		case itemLeftDelim:
-			if p.peek().typ == itemVariable {
-				n, err := p.action()
+			currentVariable = append(currentVariable, t.val)
+			p_peek := p.peek()
+			currentVariable = append(currentVariable, p_peek.val)
+			if p_peek.typ == itemVariable {
+				node, rightdelim, err := p.action()
 				if err != nil {
 					return err
 				}
-				p.nodes = append(p.nodes, n)
+				if !isVarLookupable(p_peek.val, p.SelectedEnvs) {
+					currentVariable = append(currentVariable, rightdelim)
+					p.nodes = append(p.nodes, NewText(strings.Join(currentVariable, "")))
+				} else {
+					p.nodes = append(p.nodes, node)
+				}
+				currentVariable = nil
 				continue
 			}
 			fallthrough
@@ -125,19 +153,25 @@ Loop:
 }
 
 // Parse substitution. first item is a variable.
-func (p *Parser) action() (Node, error) {
+func (p *Parser) action() (Node, string, error) {
 	var expType itemType
 	var defaultNode Node
-	varNode := NewVariable(p.next().val, p.Env, p.Restrict)
+	var rightDelim string
+	next_t_val := p.next().val
+	varNode := NewVariable(next_t_val, p.Env, p.Restrict)
+
 Loop:
 	for {
 		switch t := p.next(); t.typ {
 		case itemRightDelim:
+			rightDelim = t.val
 			break Loop
 		case itemError:
-			return nil, p.errorf(t.val)
+			return nil, rightDelim, p.errorf(t.val)
 		case itemVariable:
-			defaultNode = NewVariable(strings.TrimPrefix(t.val, "$"), p.Env, p.Restrict)
+			if isVarLookupable(strings.TrimPrefix(t.val, "$"), p.SelectedEnvs) {
+				defaultNode = NewVariable(strings.TrimPrefix(t.val, "$"), p.Env, p.Restrict)
+			}
 		case itemText:
 			n := NewText(t.val)
 		Text:
@@ -155,7 +189,8 @@ Loop:
 			expType = t.typ
 		}
 	}
-	return &SubstitutionNode{NodeSubstitution, expType, varNode, defaultNode}, nil
+	return &SubstitutionNode{NodeSubstitution, expType, varNode, defaultNode}, rightDelim, nil
+
 }
 
 func (p *Parser) errorf(s string) error {

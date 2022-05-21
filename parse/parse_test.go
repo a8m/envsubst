@@ -134,7 +134,7 @@ func TestParseStrictNoFailFast(t *testing.T) {
 
 func doTest(t *testing.T, m mode) {
 	for _, test := range parseTests {
-		result, err := New(test.name, FakeEnv, restrict[m]).Parse(test.input)
+		result, err := New(test.name, FakeEnv, restrict[m], []string{}).Parse(test.input)
 		hasErr := err != nil
 		if hasErr != test.hasErr[m] {
 			t.Errorf("%s=(error): got\n\t%v\nexpected\n\t%v\ninput: %s\nresult: %s\nerror: %v",
@@ -157,5 +157,22 @@ func doNegativeAssertTest(t *testing.T, m mode) {
 		if err.Error() != test.expected {
 			t.Errorf("%s=(%q): got\n\t%v\nexpected\n\t%v", test.name, test.input, err.Error(), test.expected)
 		}
+	}
+}
+
+func TestIsVarLookupable(t *testing.T) {
+	selectedEnvs := []string{"BAR"}
+	selectedEnvsEmpty := []string{}
+	if !isVarLookupable("BAR", selectedEnvs) {
+		t.Error("isVarLookupable failed to lookup BAR var")
+	}
+	if isVarLookupable("BAZ", selectedEnvs) {
+		t.Error("isVarLookupable failed to skip BAZ var")
+	}
+	if !isVarLookupable("FOO", selectedEnvsEmpty) {
+		t.Error("isVarLookupable failed to lookup FOO var")
+	}
+	if !isVarLookupable("ENV", selectedEnvsEmpty) {
+		t.Error("isVarLookupable failed to lookup ENV var")
 	}
 }

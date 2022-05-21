@@ -7,6 +7,7 @@ import (
 	"fmt"
 	"io"
 	"os"
+	"strings"
 
 	"github.com/a8m/envsubst/parse"
 )
@@ -16,6 +17,7 @@ var (
 	output   = flag.String("o", "", "")
 	noUnset  = flag.Bool("no-unset", false, "")
 	noEmpty  = flag.Bool("no-empty", false, "")
+	envs     = flag.String("envs", "", "")
 	failFast = flag.Bool("fail-fast", false, "")
 )
 
@@ -26,6 +28,7 @@ Options:
   -o         Specify file output. If none is specified, write to stdout.
   -no-unset  Fail if a variable is not set.
   -no-empty  Fail if a variable is set but empty.
+  -envs      A comma-separated list of selected environment vars for substitution.
   -fail-fast Fail on first error otherwise display all failures if restrictions are set.
 `
 
@@ -74,13 +77,23 @@ func main() {
 	} else {
 		file = os.Stdout
 	}
+	// Parse list of Vars for substitution
+	selectedEnvs := []string{}
+	if len(*envs) > 0 {
+		selectedEnvs = strings.Split(*envs, ",")
+	}
 	// Parse input string
 	parserMode := parse.AllErrors
 	if *failFast {
 		parserMode = parse.Quick
 	}
 	restrictions := &parse.Restrictions{*noUnset, *noEmpty}
-	result, err := (&parse.Parser{Name: "string", Env: os.Environ(), Restrict: restrictions, Mode: parserMode}).Parse(data)
+	result, err := (&parse.Parser{
+		Name:         "string",
+		Env:          os.Environ(),
+		Restrict:     restrictions,
+		Mode:         parserMode,
+		SelectedEnvs: selectedEnvs}).Parse(data)
 	if err != nil {
 		errorAndExit(err)
 	}

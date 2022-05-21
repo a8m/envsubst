@@ -50,6 +50,7 @@ The flags and their restrictions are:
 |`-o`  | output file | ```string | stdout``` |  `stdout` 
 |`-no-unset`  | fail if a variable is not set | `flag` |  `false` 
 |`-no-empty`  | fail if a variable is set but empty | `flag` | `false`
+|`-envs`  | A comma-separated list of selected environment vars for substitution | `flag` | ``
 |`-fail-fast`  | fails at first occurence of an error, if `-no-empty` or `-no-unset` flags were **not** specified this is ignored | `flag` | `false`
 
 These flags can be combined to form tighter restrictions. 
