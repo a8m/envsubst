@@ -18,8 +18,13 @@ func String(s string) (string, error) {
 // an error describing the failure.
 // Errors on first failure or returns a collection of failures if failOnFirst is false
 func StringRestricted(s string, noUnset, noEmpty bool) (string, error) {
+	return StringRestrictedNoDigit(s, noUnset, noEmpty , false)
+}
+
+// Like StringRestricted but additionally allows to ignore env variables which start with a digit.
+func StringRestrictedNoDigit(s string, noUnset, noEmpty bool, noDigit bool) (string, error) {
 	return parse.New("string", os.Environ(),
-		&parse.Restrictions{noUnset, noEmpty}).Parse(s)
+		&parse.Restrictions{noUnset, noEmpty, noDigit}).Parse(s)
 }
 
 // Bytes returns the bytes represented by the parsed template after processing it.
@@ -32,8 +37,13 @@ func Bytes(b []byte) ([]byte, error) {
 // If the parser encounters invalid input, or a restriction is violated, it returns
 // an error describing the failure.
 func BytesRestricted(b []byte, noUnset, noEmpty bool) ([]byte, error) {
+	return BytesRestrictedNoDigit(b, noUnset, noEmpty, false)
+}
+
+// Like BytesRestricted but additionally allows to ignore env variables which start with a digit.
+func BytesRestrictedNoDigit(b []byte, noUnset, noEmpty bool, noDigit bool) ([]byte, error) {
 	s, err := parse.New("bytes", os.Environ(),
-		&parse.Restrictions{noUnset, noEmpty}).Parse(string(b))
+		&parse.Restrictions{noUnset, noEmpty, noDigit}).Parse(string(b))
 	if err != nil {
 		return nil, err
 	}
@@ -51,9 +61,14 @@ func ReadFile(filename string) ([]byte, error) {
 // If the call to io.ReadFile failed it returns the error; otherwise it will
 // call envsubst.Bytes with the returned content.
 func ReadFileRestricted(filename string, noUnset, noEmpty bool) ([]byte, error) {
+	return ReadFileRestrictedNoDigit(filename, noUnset, noEmpty, false)
+}
+
+// Like ReadFileRestricted but additionally allows to ignore env variables which start with a digit.
+func ReadFileRestrictedNoDigit(filename string, noUnset, noEmpty bool, noDigit bool) ([]byte, error) {
 	b, err := ioutil.ReadFile(filename)
 	if err != nil {
 		return nil, err
 	}
-	return BytesRestricted(b, noUnset, noEmpty)
+	return BytesRestrictedNoDigit(b, noUnset, noEmpty, noDigit)
 }
