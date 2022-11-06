@@ -14,7 +14,7 @@ import (
 var (
 	input    = flag.String("i", "", "")
 	output   = flag.String("o", "", "")
-    noDigit  = flag.Bool("no-digit", false, "")
+	noDigit  = flag.Bool("no-digit", false, "")
 	noUnset  = flag.Bool("no-unset", false, "")
 	noEmpty  = flag.Bool("no-empty", false, "")
 	failFast = flag.Bool("fail-fast", false, "")
