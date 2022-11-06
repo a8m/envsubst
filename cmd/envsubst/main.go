@@ -14,7 +14,7 @@ import (
 var (
 	input    = flag.String("i", "", "")
 	output   = flag.String("o", "", "")
-	noDigit  = flag.Bool("d", false, "")
+    noDigit  = flag.Bool("no-digit", false, "")
 	noUnset  = flag.Bool("no-unset", false, "")
 	noEmpty  = flag.Bool("no-empty", false, "")
 	failFast = flag.Bool("fail-fast", false, "")
@@ -25,7 +25,7 @@ Options:
   -i         Specify file input, otherwise use last argument as input file.
              If no input file is specified, read from stdin.
   -o         Specify file output. If none is specified, write to stdout.
-  -d         Do not replace variables starting with a digit. e.g. $1 and ${1}
+  -no-digit  Do not replace variables starting with a digit. e.g. $1 and ${1}
   -no-unset  Fail if a variable is not set.
   -no-empty  Fail if a variable is set but empty.
   -fail-fast Fail on first error otherwise display all failures if restrictions are set.

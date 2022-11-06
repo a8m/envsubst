@@ -130,10 +130,7 @@ func TestLex(t *testing.T) {
 
 // collect gathers the emitted items into a slice.
 func collect(t *lexTest) (items []item) {
-	noDigit := false
-	if strings.HasPrefix(t.name, "no digit") {
-		noDigit = true
-	}
+	noDigit := strings.HasPrefix(t.name, "no digit")
 	l := lex(t.input, noDigit)
 	for {
 		item := l.nextItem()
