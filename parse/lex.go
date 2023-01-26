@@ -67,6 +67,7 @@ type lexer struct {
 	lastPos   Pos       // position of most recent item returned by nextItem
 	items     chan item // channel of lexed items
 	subsDepth int       // depth of substitution
+	noDigit   bool      // if the lexer skips variables that start with a digit
 }
 
 // next returns the next rune in the input.
@@ -120,10 +121,11 @@ func (l *lexer) nextItem() item {
 }
 
 // lex creates a new scanner for the input string.
-func lex(input string) *lexer {
+func lex(input string, noDigit bool) *lexer {
 	l := &lexer{
 		input: input,
 		items: make(chan item),
+		noDigit: noDigit,
 	}
 	go l.run()
 	return l
@@ -150,6 +152,10 @@ Loop:
 			}
 			l.pos++
 			switch r := l.peek(); {
+			case l.noDigit && unicode.IsDigit(r):
+				// ignore variable starting with digit like $1.
+				l.next()
+				l.emit(itemText)
 			case r == '$':
 				// ignore the previous '$'.
 				l.ignore()
@@ -157,6 +163,13 @@ Loop:
 				l.emit(itemText)
 			case r == '{':
 				l.next()
+				r2 := l.peek()
+				if l.noDigit && unicode.IsDigit(r2) {
+					// ignore variable starting with digit like ${1}.
+					l.next()
+					l.emit(itemText)
+					break
+				}
 				l.subsDepth++
 				l.emit(itemLeftDelim)
 				return lexSubstitution

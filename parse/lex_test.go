@@ -2,6 +2,7 @@ package parse
 
 import (
 	"testing"
+	"strings"
 )
 
 type lexTest struct {
@@ -93,6 +94,29 @@ var lexTests = []lexTest{
 		{itemText, 8, "{HOME}"},
 		tEOF,
 	}},
+	{"no digit $1", "hello $1", []item{
+		{itemText, 0, "hello "},
+		{itemText, 7, "$1"},
+		tEOF,
+	}},
+	{"no digit $1ABC", "hello $1ABC", []item{
+		{itemText, 0, "hello "},
+		{itemText, 7, "$1"},
+		{itemText, 9, "ABC"},
+		tEOF,
+	}},
+	{"no digit ${2}", "hello ${2}", []item{
+		{itemText, 0, "hello "},
+		{itemText, 7, "${2"},
+		{itemText, 10, "}"},
+		tEOF,
+	}},
+	{"no digit ${2ABC}", "hello ${2ABC}", []item{
+		{itemText, 0, "hello "},
+		{itemText, 7, "${2"},
+		{itemText, 10, "ABC}"},
+		tEOF,
+	}},
 }
 
 func TestLex(t *testing.T) {
@@ -106,7 +130,8 @@ func TestLex(t *testing.T) {
 
 // collect gathers the emitted items into a slice.
 func collect(t *lexTest) (items []item) {
-	l := lex(t.input)
+	noDigit := strings.HasPrefix(t.name, "no digit")
+	l := lex(t.input, noDigit)
 	for {
 		item := l.nextItem()
 		items = append(items, item)

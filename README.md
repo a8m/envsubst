@@ -48,6 +48,7 @@ The flags and their restrictions are:
 | ------------| -------------- | ------------ | ------------ |
 |`-i`  | input file  | ```string | stdin``` | `stdin`
 |`-o`  | output file | ```string | stdout``` |  `stdout` 
+|`-no-digit`  | do not replace variables starting with a digit, e.g. $1 and ${1} | `flag` |  `false` 
 |`-no-unset`  | fail if a variable is not set | `flag` |  `false` 
 |`-no-empty`  | fail if a variable is set but empty | `flag` | `false`
 |`-fail-fast`  | fails at first occurence of an error, if `-no-empty` or `-no-unset` flags were **not** specified this is ignored | `flag` | `false`
