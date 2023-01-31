@@ -81,7 +81,7 @@ func main() {
 	if *failFast {
 		parserMode = parse.Quick
 	}
-	restrictions := &parse.Restrictions{*noUnset, *noEmpty, *noDigit}
+	restrictions := &parse.Restrictions{*noUnset, *noEmpty, *noDigit, false}
 	result, err := (&parse.Parser{Name: "string", Env: os.Environ(), Restrict: restrictions, Mode: parserMode}).Parse(data)
 	if err != nil {
 		errorAndExit(err)
