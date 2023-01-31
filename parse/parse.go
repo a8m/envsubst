@@ -17,17 +17,18 @@ const (
 
 // The restrictions option controls the parsring restriction.
 type Restrictions struct {
-	NoUnset bool
-	NoEmpty bool
-	NoDigit bool
+	NoUnset   bool
+	NoEmpty   bool
+	NoDigit   bool
+	NoReplace bool
 }
 
 // Restrictions specifier
 var (
-	Relaxed = &Restrictions{false, false, false}
-	NoEmpty = &Restrictions{false, true, false}
-	NoUnset = &Restrictions{true, false, false}
-	Strict  = &Restrictions{true, true, false}
+	Relaxed = &Restrictions{false, false, false, false}
+	NoEmpty = &Restrictions{false, true, false, false}
+	NoUnset = &Restrictions{true, false, false, false}
+	Strict  = &Restrictions{true, true, false, false}
 )
 
 // Parser type initializer

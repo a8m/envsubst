@@ -18,13 +18,21 @@ func String(s string) (string, error) {
 // an error describing the failure.
 // Errors on first failure or returns a collection of failures if failOnFirst is false
 func StringRestricted(s string, noUnset, noEmpty bool) (string, error) {
-	return StringRestrictedNoDigit(s, noUnset, noEmpty , false)
+	return StringRestrictedNoDigit(s, noUnset, noEmpty, false)
 }
 
 // Like StringRestricted but additionally allows to ignore env variables which start with a digit.
 func StringRestrictedNoDigit(s string, noUnset, noEmpty bool, noDigit bool) (string, error) {
+	return StringNoReplace(s, noUnset, noEmpty, noDigit, false)
+}
+
+// Like StringRestrictedNoDigit but additionally allows to leave not found variables unreplaced
+//
+// e.g. P4s$w0rd123! to remain P4s$w0rd123!
+// as opposed to P4s! IF no EnvVar is found to match
+func StringNoReplace(s string, noUnset, noEmpty, noDigit, noReplace bool) (string, error) {
 	return parse.New("string", os.Environ(),
-		&parse.Restrictions{noUnset, noEmpty, noDigit}).Parse(s)
+		&parse.Restrictions{noUnset, noEmpty, noDigit, noReplace}).Parse(s)
 }
 
 // Bytes returns the bytes represented by the parsed template after processing it.
@@ -42,8 +50,16 @@ func BytesRestricted(b []byte, noUnset, noEmpty bool) ([]byte, error) {
 
 // Like BytesRestricted but additionally allows to ignore env variables which start with a digit.
 func BytesRestrictedNoDigit(b []byte, noUnset, noEmpty bool, noDigit bool) ([]byte, error) {
+	return BytesRestrictedNoReplace(b, noUnset, noEmpty, noDigit, false)
+}
+
+// Like BytesRestrictedNoDigit but additionally allows to leave not found variables unreplaced
+//
+// e.g. P4s$w0rd123! to remain P4s$w0rd123!
+// as opposed to P4s! IF no EnvVar is found to match
+func BytesRestrictedNoReplace(b []byte, noUnset, noEmpty, noDigit, noReplace bool) ([]byte, error) {
 	s, err := parse.New("bytes", os.Environ(),
-		&parse.Restrictions{noUnset, noEmpty, noDigit}).Parse(string(b))
+		&parse.Restrictions{noUnset, noEmpty, noDigit, noReplace}).Parse(string(b))
 	if err != nil {
 		return nil, err
 	}
@@ -71,4 +87,16 @@ func ReadFileRestrictedNoDigit(filename string, noUnset, noEmpty bool, noDigit b
 		return nil, err
 	}
 	return BytesRestrictedNoDigit(b, noUnset, noEmpty, noDigit)
+}
+
+// Like BytesRestrictedNoDigit but additionally allows to leave not found variables unreplaced
+//
+// e.g. P4s$w0rd123! to remain P4s$w0rd123!
+// as opposed to P4s! IF no EnvVar is found to match
+func ReadFileRestrictedNoReplace(filename string, noUnset, noEmpty, noDigit, noReplace bool) ([]byte, error) {
+	b, err := os.ReadFile(filename)
+	if err != nil {
+		return nil, err
+	}
+	return BytesRestrictedNoReplace(b, noUnset, noEmpty, noDigit, noReplace)
 }

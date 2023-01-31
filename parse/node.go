@@ -52,11 +52,8 @@ func (t *VariableNode) String() (string, error) {
 	if err := t.validateNoUnset(); err != nil {
 		return "", err
 	}
-	value := t.Env.Get(t.Ident)
-	if err := t.validateNoEmpty(value); err != nil {
-		return "", err
-	}
-	return value, nil
+
+	return t.validateNoEmpty(t.Env.Get(t.Ident))
 }
 
 func (t *VariableNode) isSet() bool {
@@ -70,11 +67,14 @@ func (t *VariableNode) validateNoUnset() error {
 	return nil
 }
 
-func (t *VariableNode) validateNoEmpty(value string) error {
-	if t.Restrict.NoEmpty && value == "" && t.isSet() {
-		return fmt.Errorf("variable ${%s} set but empty", t.Ident)
+func (t *VariableNode) validateNoEmpty(value string) (string, error) {
+	if t.Restrict.NoReplace && len(value) < 1 {
+		return fmt.Sprintf("$%s", t.Ident), nil
 	}
-	return nil
+	if t.Restrict.NoEmpty && value == "" && t.isSet() {
+		return "", fmt.Errorf("variable ${%s} set but empty", t.Ident)
+	}
+	return value, nil
 }
 
 type SubstitutionNode struct {

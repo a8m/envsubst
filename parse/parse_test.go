@@ -148,7 +148,7 @@ func doTest(t *testing.T, m mode) {
 
 func doNegativeAssertTest(t *testing.T, m mode) {
 	for _, test := range negativeParseTests {
-		result, err := (*&Parser{Name: test.name, Env: FakeEnv, Restrict: restrict[m], Mode: AllErrors}).Parse(test.input)
+		result, err := (&Parser{Name: test.name, Env: FakeEnv, Restrict: restrict[m], Mode: AllErrors}).Parse(test.input)
 		hasErr := err != nil
 		if hasErr != test.hasErr[m] {
 			t.Errorf("%s=(error): got\n\t%v\nexpected\n\t%v\ninput: %s\nresult: %s\nerror: %v",
@@ -157,5 +157,52 @@ func doNegativeAssertTest(t *testing.T, m mode) {
 		if err.Error() != test.expected {
 			t.Errorf("%s=(%q): got\n\t%v\nexpected\n\t%v", test.name, test.input, err.Error(), test.expected)
 		}
+	}
+}
+
+func TestNoReplace(t *testing.T) {
+	ttests := map[string]struct {
+		input        string
+		env          []string
+		restrictions *Restrictions
+		expected     string
+	}{
+		"correctly set restrictions for no replace": {
+			`Some: $REPLACE
+		NoReplace: Stuff$ToIgnore!d`,
+			[]string{"REPLACE=bar"},
+			&Restrictions{false, false, true, true},
+			`Some: bar
+		NoReplace: Stuff$ToIgnore!d`,
+		},
+		"if unset true - should error": {
+			`Some: $REPLACE
+		NoReplace: Stuff$ToIgnore!d`,
+			[]string{"REPLACE=bar"},
+			&Restrictions{true, false, true, true},
+			`variable ${ToIgnore} not set`,
+		},
+		"noreplace set to false should return empty string": {
+			`Some: $REPLACE
+NoReplace: Stuff$ToIgnore!d`,
+			[]string{"REPLACE=bar"},
+			&Restrictions{false, false, true, false},
+			`Some: bar
+NoReplace: Stuff!d`,
+		},
+	}
+	for name, test := range ttests {
+		t.Run(name, func(t *testing.T) {
+			result, err := (&Parser{Name: name, Env: test.env, Restrict: test.restrictions, Mode: AllErrors}).Parse(test.input)
+			if err != nil {
+				if err.Error() != test.expected {
+					t.Errorf("error\n%s=(%q): got\n\t%v\nexpected\n\t%v", name, test.input, err.Error(), test.expected)
+				}
+				return
+			}
+			if result != test.expected {
+				t.Errorf("%s=(%q): got\n\t%v\nexpected\n\t%v", name, test.input, result, test.expected)
+			}
+		})
 	}
 }
