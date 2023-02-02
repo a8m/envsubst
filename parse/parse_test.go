@@ -63,6 +63,12 @@ var parseTests = []parseTest{
 	{"issue #1", "${hello:=wo_rld} ${foo:=bar_baz}", "wo_rld bar_baz", errNone},
 	{"issue #2", "name: ${NAME:=foo_qux}, key: ${EMPTY:=baz_bar}", "name: foo_qux, key: baz_bar", errNone},
 	{"gh-issue-8", "prop=${HOME_URL-http://localhost:8080}", "prop=http://localhost:8080", errNone},
+	// operators as leading values
+	{"gh-issue-41-1", "${NOTSET--1}", "-1", errNone},
+	{"gh-issue-41-2", "${NOTSET:--1}", "-1", errNone},
+	{"gh-issue-41-3", "${NOTSET=-1}", "-1", errNone},
+	{"gh-issue-41-4", "${NOTSET:==1}", "=1", errNone},
+
 	// bad substitution
 	{"closing brace expected", "hello ${", "", errAll},
 

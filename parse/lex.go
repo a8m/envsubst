@@ -123,8 +123,8 @@ func (l *lexer) nextItem() item {
 // lex creates a new scanner for the input string.
 func lex(input string, noDigit bool) *lexer {
 	l := &lexer{
-		input: input,
-		items: make(chan item),
+		input:   input,
+		items:   make(chan item),
 		noDigit: noDigit,
 	}
 	go l.run()
@@ -172,7 +172,7 @@ Loop:
 				}
 				l.subsDepth++
 				l.emit(itemLeftDelim)
-				return lexSubstitution
+				return lexSubstitutionOperator
 			case isAlphaNumeric(r):
 				return lexVariable
 			}
@@ -204,9 +204,37 @@ func lexVariable(l *lexer) stateFn {
 	}
 	l.emit(itemVariable)
 	if l.subsDepth > 0 {
-		return lexSubstitution
+		return lexSubstitutionOperator
 	}
 	return lexText
+}
+
+// lexSubstitutionOperator scans a starting substitution operator (if any) and continues with lexSubstitution
+func lexSubstitutionOperator(l *lexer) stateFn {
+	switch r := l.next(); {
+	case r == '}':
+		l.subsDepth--
+		l.emit(itemRightDelim)
+		return lexText
+	case r == eof || isEndOfLine(r):
+		return l.errorf("closing brace expected")
+	case r == '+':
+		l.emit(itemPlus)
+	case r == '-':
+		l.emit(itemDash)
+	case r == '=':
+		l.emit(itemEquals)
+	case r == ':':
+		switch l.next() {
+		case '-':
+			l.emit(itemColonDash)
+		case '=':
+			l.emit(itemColonEquals)
+		case '+':
+			l.emit(itemColonPlus)
+		}
+	}
+	return lexSubstitution
 }
 
 // lexSubstitution scans the elements inside substitution delimiters.
@@ -222,23 +250,6 @@ func lexSubstitution(l *lexer) stateFn {
 		fallthrough
 	case r == '$':
 		return lexVariable
-	case r == '+':
-		l.emit(itemPlus)
-	case r == '-':
-		l.emit(itemDash)
-	case r == '=':
-		l.emit(itemEquals)
-	case r == ':':
-		switch l.next() {
-		case '-':
-			l.emit(itemColonDash)
-		case '=':
-			l.emit(itemColonEquals)
-		case '+':
-			l.emit(itemColonPlus)
-		default:
-			l.emit(itemText)
-		}
 	default:
 		l.emit(itemText)
 	}

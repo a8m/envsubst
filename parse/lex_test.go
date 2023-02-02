@@ -1,8 +1,8 @@
 package parse
 
 import (
-	"testing"
 	"strings"
+	"testing"
 )
 
 type lexTest struct {
@@ -72,6 +72,28 @@ var lexTests = []lexTest{
 		{itemVariable, 0, "BAR"},
 		tColEquals,
 		{itemVariable, 0, "$BAZ"},
+		tRight,
+		{itemText, 0, " foo"},
+		tEOF,
+	}},
+	{"substitution-leading-dash-1", "bar ${BAR:--1} foo", []item{
+		{itemText, 0, "bar "},
+		tLeft,
+		{itemVariable, 0, "BAR"},
+		tColDash,
+		{itemText, 0, "-"},
+		{itemText, 0, "1"},
+		tRight,
+		{itemText, 0, " foo"},
+		tEOF,
+	}},
+	{"substitution-leading-dash-2", "bar ${BAR:=-1} foo", []item{
+		{itemText, 0, "bar "},
+		tLeft,
+		{itemVariable, 0, "BAR"},
+		tColEquals,
+		{itemText, 0, "-"},
+		{itemText, 0, "1"},
 		tRight,
 		{itemText, 0, " foo"},
 		tEOF,
