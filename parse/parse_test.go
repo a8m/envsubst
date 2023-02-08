@@ -9,6 +9,7 @@ var FakeEnv = []string{
 	"FOO=foo",
 	"EMPTY=",
 	"ALSO_EMPTY=",
+	"A=AAA",
 }
 
 type mode int
@@ -68,6 +69,9 @@ var parseTests = []parseTest{
 	{"gh-issue-41-2", "${NOTSET:--1}", "-1", errNone},
 	{"gh-issue-41-3", "${NOTSET=-1}", "-1", errNone},
 	{"gh-issue-41-4", "${NOTSET:==1}", "=1", errNone},
+
+	// single letter
+	{"gh-issue-43-1", "${A}", "AAA", errNone},
 
 	// bad substitution
 	{"closing brace expected", "hello ${", "", errAll},

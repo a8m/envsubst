@@ -33,6 +33,12 @@ var lexTests = []lexTest{
 		{itemVariable, 0, "$hello"},
 		tEOF,
 	}},
+	{"single char var", "${A}", []item{
+		tLeft,
+		{itemVariable, 0, "A"},
+		tRight,
+		tEOF,
+	}},
 	{"2 vars", "$hello $world", []item{
 		{itemVariable, 0, "$hello"},
 		{itemText, 0, " "},
