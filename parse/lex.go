@@ -218,6 +218,8 @@ func lexSubstitutionOperator(l *lexer) stateFn {
 		return lexText
 	case r == eof || isEndOfLine(r):
 		return l.errorf("closing brace expected")
+	case isAlphaNumeric(r) && strings.HasPrefix(l.input[l.lastPos:], "${"):
+		return lexVariable
 	case r == '+':
 		l.emit(itemPlus)
 	case r == '-':
