@@ -16,6 +16,8 @@ jobs:
         goos: linux
         goarch: amd64
         project_path: cmd/envsubst
+        asset_name: envsubst-Linux-x86_64
+        compress_assets: OFF
   release-linux-arm64:
     name: release linux/arm64
     runs-on: ubuntu-latest
@@ -27,6 +29,8 @@ jobs:
         goos: linux
         goarch: arm64
         project_path: cmd/envsubst
+        asset_name: envsubst-Linux-arm64
+        compress_assets: OFF
   release-darwin-amd64:
     name: release darwin/amd64
     runs-on: ubuntu-latest
@@ -38,6 +42,8 @@ jobs:
         goos: darwin
         goarch: amd64
         project_path: cmd/envsubst
+        asset_name: envsubst-Darwin-x86_64
+        compress_assets: OFF
   release-darwin-arm64:
     name: release darwin/arm64
     runs-on: ubuntu-latest
@@ -49,3 +55,18 @@ jobs:
         goos: darwin
         goarch: arm64
         project_path: cmd/envsubst
+        asset_name: envsubst-Darwin-arm64
+        compress_assets: OFF
+  release-windows:
+    name: release windows
+    runs-on: ubuntu-latest
+    steps:
+    - uses: actions/checkout@v2
+    - uses: wangyoucao577/go-release-action@v1.22
+      with:
+        github_token: ${{ secrets.GITHUB_TOKEN }}
+        goos: windows
+        goarch: amd64
+        project_path: cmd/envsubst
+        asset_name: envsubst.exe
+        compress_assets: OFF
