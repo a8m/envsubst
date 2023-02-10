@@ -68,5 +68,5 @@ jobs:
         goos: windows
         goarch: amd64
         project_path: cmd/envsubst
-        asset_name: envsubst.exe
+        asset_name: envsubst
         compress_assets: OFF
