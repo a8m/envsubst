@@ -51,7 +51,7 @@ The flags and their restrictions are:
 |`-no-digit`  | do not replace variables starting with a digit, e.g. $1 and ${1} | `flag` |  `false` 
 |`-no-unset`  | fail if a variable is not set | `flag` |  `false` 
 |`-no-empty`  | fail if a variable is set but empty | `flag` | `false`
-|`-fail-fast`  | fails at first occurence of an error, if `-no-empty` or `-no-unset` flags were **not** specified this is ignored | `flag` | `false`
+|`-fail-fast`  | fails at first occurrence of an error, if `-no-empty` or `-no-unset` flags were **not** specified this is ignored | `flag` | `false`
 
 These flags can be combined to form tighter restrictions. 
 
@@ -66,7 +66,7 @@ import (
 )
 
 func main() {
-    input := "welcom $HOME"
+    input := "welcome $HOME"
     str, err := envsubst.String(input)
     // ...
     buf, err := envsubst.Bytes([]byte(input))
