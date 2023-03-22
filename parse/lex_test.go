@@ -140,6 +140,14 @@ func Test_lex(t *testing.T) {
 			tVariable("world"),
 			tError("closing brace expected"),
 		}},
+		{"closing brace error after default", args{input: "hello-${world:=1"}, []item{
+			tText("hello-"),
+			tLeft,
+			tVariable("world"),
+			tColEquals,
+			tText("1"),
+			tError("closing brace expected"),
+		}},
 		{"escaping $$var", args{input: "hello $$HOME"}, []item{
 			tText("hello "),
 			tText("$"),

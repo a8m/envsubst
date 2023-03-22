@@ -246,6 +246,8 @@ func lexSubstitution(l *lexer) stateFn {
 		l.subsDepth--
 		l.emit(itemRightDelim)
 		return lexText
+	case r == eof || isEndOfLine(r):
+		return l.errorf("closing brace expected")
 	case r == '$':
 		return lexVariable
 	default:
