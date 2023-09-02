@@ -1,19 +1,222 @@
 package parse
 
 import (
-	"strings"
 	"testing"
 )
 
-type lexTest struct {
-	name  string
-	input string
-	items []item
+func Test_lex(t *testing.T) {
+	type args struct {
+		input   string
+		noDigit bool
+	}
+	tests := []struct {
+		name string
+		args args
+		want []item
+	}{
+		{"empty", args{input: ""}, []item{tEOF}},
+		{"text", args{input: "hello"}, []item{
+			tText("hello"),
+			tEOF,
+		}},
+		{"var", args{input: "$hello"}, []item{
+			tVariable("$hello"),
+			tEOF,
+		}},
+		{"single char var", args{input: "${A}"}, []item{
+			tLeft,
+			tVariable("A"),
+			tRight,
+			tEOF,
+		}},
+		{"2 vars", args{input: "$hello $world"}, []item{
+			tVariable("$hello"),
+			tText(" "),
+			tVariable("$world"),
+			tEOF,
+		}},
+		{"substitution-1", args{input: "bar ${BAR}"}, []item{
+			tText("bar "),
+			tLeft,
+			tVariable("BAR"),
+			tRight,
+			tEOF,
+		}},
+		{"substitution-2", args{input: "bar ${BAR:=baz}"}, []item{
+			tText("bar "),
+			tLeft,
+			tVariable("BAR"),
+			tColEquals,
+			tText("b"),
+			tText("a"),
+			tText("z"),
+			tRight,
+			tEOF,
+		}},
+		{"substitution-3", args{input: "bar ${BAR:=$BAZ}"}, []item{
+			tText("bar "),
+			tLeft,
+			tVariable("BAR"),
+			tColEquals,
+			tVariable("$BAZ"),
+			tRight,
+			tEOF,
+		}},
+		{"substitution-4", args{input: "bar ${BAR:=$BAZ} foo"}, []item{
+			tText("bar "),
+			tLeft,
+			tVariable("BAR"),
+			tColEquals,
+			tVariable("$BAZ"),
+			tRight,
+			tText(" foo"),
+			tEOF,
+		}},
+		{"substitution-plus", args{input: "bar ${BAR+$BAZ} foo"}, []item{
+			tText("bar "),
+			tLeft,
+			tVariable("BAR"),
+			tPlus,
+			tVariable("$BAZ"),
+			tRight,
+			tText(" foo"),
+			tEOF,
+		}},
+		{"substitution-dash", args{input: "bar ${BAR-$BAZ} foo"}, []item{
+			tText("bar "),
+			tLeft,
+			tVariable("BAR"),
+			tDash,
+			tVariable("$BAZ"),
+			tRight,
+			tText(" foo"),
+			tEOF,
+		}},
+		{"substitution-equals", args{input: "bar ${BAR=$BAZ} foo"}, []item{
+			tText("bar "),
+			tLeft,
+			tVariable("BAR"),
+			tEquals,
+			tVariable("$BAZ"),
+			tRight,
+			tText(" foo"),
+			tEOF,
+		}},
+		{"substitution-col-plus", args{input: "bar ${BAR:+$BAZ} foo"}, []item{
+			tText("bar "),
+			tLeft,
+			tVariable("BAR"),
+			tColPlus,
+			tVariable("$BAZ"),
+			tRight,
+			tText(" foo"),
+			tEOF,
+		}},
+		{"substitution-leading-dash-1", args{input: "bar ${BAR:--1} foo"}, []item{
+			tText("bar "),
+			tLeft,
+			tVariable("BAR"),
+			tColDash,
+			tText("-"),
+			tText("1"),
+			tRight,
+			tText(" foo"),
+			tEOF,
+		}},
+		{"substitution-leading-dash-2", args{input: "bar ${BAR:=-1} foo"}, []item{
+			tText("bar "),
+			tLeft,
+			tVariable("BAR"),
+			tColEquals,
+			tText("-"),
+			tText("1"),
+			tRight,
+			tText(" foo"),
+			tEOF,
+		}},
+		{"closing brace error", args{input: "hello-${world"}, []item{
+			tText("hello-"),
+			tLeft,
+			tVariable("world"),
+			tError("closing brace expected"),
+		}},
+		{"closing brace error after default", args{input: "hello-${world:=1"}, []item{
+			tText("hello-"),
+			tLeft,
+			tVariable("world"),
+			tColEquals,
+			tText("1"),
+			tError("closing brace expected"),
+		}},
+		{"escaping $$var", args{input: "hello $$HOME"}, []item{
+			tText("hello "),
+			tText("$"),
+			tText("HOME"),
+			tEOF,
+		}},
+		{"escaping $${subst}", args{input: "hello $${HOME}"}, []item{
+			tText("hello "),
+			tText("$"),
+			tText("{HOME}"),
+			tEOF,
+		}},
+		{"starting with underscore 1", args{input: "hello $_"}, []item{
+			tText("hello "),
+			tText("$_"),
+			tEOF,
+		}},
+		{"starting with underscore 2", args{input: "hello ${_}"}, []item{
+			tText("hello "),
+			tLeft,
+			tText("_}"),
+			tEOF,
+		}},
+		{"no digit $1", args{input: "hello $1", noDigit: true}, []item{
+			tText("hello "),
+			tText("$1"),
+			tEOF,
+		}},
+		{"no digit $1ABC", args{input: "hello $1ABC", noDigit: true}, []item{
+			tText("hello "),
+			tText("$1"),
+			tText("ABC"),
+			tEOF,
+		}},
+		{"no digit ${2}", args{input: "hello ${2}", noDigit: true}, []item{
+			tText("hello "),
+			tText("${2"),
+			tText("}"),
+			tEOF,
+		}},
+		{"no digit ${2ABC}", args{input: "hello ${2ABC}", noDigit: true}, []item{
+			tText("hello "),
+			tText("${2"),
+			tText("ABC}"),
+			tEOF,
+		}},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			l := lex(tt.args.input, tt.args.noDigit)
+			// gather the emitted items into "got"
+			var got []item
+			for {
+				i := l.nextItem()
+				got = append(got, i)
+				if i.typ == itemEOF || i.typ == itemError {
+					break
+				}
+			}
+			if !equal(tt.want, got) {
+				t.Errorf("lex(\"%s\") = %v, want %v", tt.args.input, got, tt.want)
+			}
+		})
+	}
 }
 
 var (
 	tEOF       = item{itemEOF, 0, ""}
-	tPlus      = item{itemPlus, 0, ""}
+	tPlus      = item{itemPlus, 0, "+"}
 	tDash      = item{itemDash, 0, "-"}
 	tEquals    = item{itemEquals, 0, "="}
 	tColEquals = item{itemColonEquals, 0, ":="}
@@ -23,154 +226,20 @@ var (
 	tRight     = item{itemRightDelim, 0, "}"}
 )
 
-var lexTests = []lexTest{
-	{"empty", "", []item{tEOF}},
-	{"text", "hello", []item{
-		{itemText, 0, "hello"},
-		tEOF,
-	}},
-	{"var", "$hello", []item{
-		{itemVariable, 0, "$hello"},
-		tEOF,
-	}},
-	{"single char var", "${A}", []item{
-		tLeft,
-		{itemVariable, 0, "A"},
-		tRight,
-		tEOF,
-	}},
-	{"2 vars", "$hello $world", []item{
-		{itemVariable, 0, "$hello"},
-		{itemText, 0, " "},
-		{itemVariable, 0, "$world"},
-		tEOF,
-	}},
-	{"substitution-1", "bar ${BAR}", []item{
-		{itemText, 0, "bar "},
-		tLeft,
-		{itemVariable, 0, "BAR"},
-		tRight,
-		tEOF,
-	}},
-	{"substitution-2", "bar ${BAR:=baz}", []item{
-		{itemText, 0, "bar "},
-		tLeft,
-		{itemVariable, 0, "BAR"},
-		tColEquals,
-		{itemText, 0, "b"},
-		{itemText, 0, "a"},
-		{itemText, 0, "z"},
-		tRight,
-		tEOF,
-	}},
-	{"substitution-3", "bar ${BAR:=$BAZ}", []item{
-		{itemText, 0, "bar "},
-		tLeft,
-		{itemVariable, 0, "BAR"},
-		tColEquals,
-		{itemVariable, 0, "$BAZ"},
-		tRight,
-		tEOF,
-	}},
-	{"substitution-4", "bar ${BAR:=$BAZ} foo", []item{
-		{itemText, 0, "bar "},
-		tLeft,
-		{itemVariable, 0, "BAR"},
-		tColEquals,
-		{itemVariable, 0, "$BAZ"},
-		tRight,
-		{itemText, 0, " foo"},
-		tEOF,
-	}},
-	{"substitution-leading-dash-1", "bar ${BAR:--1} foo", []item{
-		{itemText, 0, "bar "},
-		tLeft,
-		{itemVariable, 0, "BAR"},
-		tColDash,
-		{itemText, 0, "-"},
-		{itemText, 0, "1"},
-		tRight,
-		{itemText, 0, " foo"},
-		tEOF,
-	}},
-	{"substitution-leading-dash-2", "bar ${BAR:=-1} foo", []item{
-		{itemText, 0, "bar "},
-		tLeft,
-		{itemVariable, 0, "BAR"},
-		tColEquals,
-		{itemText, 0, "-"},
-		{itemText, 0, "1"},
-		tRight,
-		{itemText, 0, " foo"},
-		tEOF,
-	}},
-	{"closing brace error", "hello-${world", []item{
-		{itemText, 0, "hello-"},
-		tLeft,
-		{itemVariable, 0, "world"},
-		{itemError, 0, "closing brace expected"},
-	}},
-	{"escaping $$var", "hello $$HOME", []item{
-		{itemText, 0, "hello "},
-		{itemText, 7, "$"},
-		{itemText, 8, "HOME"},
-		tEOF,
-	}},
-	{"escaping $${subst}", "hello $${HOME}", []item{
-		{itemText, 0, "hello "},
-		{itemText, 7, "$"},
-		{itemText, 8, "{HOME}"},
-		tEOF,
-	}},
-	{"no digit $1", "hello $1", []item{
-		{itemText, 0, "hello "},
-		{itemText, 7, "$1"},
-		tEOF,
-	}},
-	{"no digit $1ABC", "hello $1ABC", []item{
-		{itemText, 0, "hello "},
-		{itemText, 7, "$1"},
-		{itemText, 9, "ABC"},
-		tEOF,
-	}},
-	{"no digit ${2}", "hello ${2}", []item{
-		{itemText, 0, "hello "},
-		{itemText, 7, "${2"},
-		{itemText, 10, "}"},
-		tEOF,
-	}},
-	{"no digit ${2ABC}", "hello ${2ABC}", []item{
-		{itemText, 0, "hello "},
-		{itemText, 7, "${2"},
-		{itemText, 10, "ABC}"},
-		tEOF,
-	}},
+func tError(value string) item {
+	return item{typ: itemError, val: value}
 }
 
-func TestLex(t *testing.T) {
-	for _, test := range lexTests {
-		items := collect(&test)
-		if !equal(items, test.items, false) {
-			t.Errorf("%s:\ninput\n\t%q\ngot\n\t%+v\nexpected\n\t%v", test.name, test.input, items, test.items)
-		}
-	}
+func tText(value string) item {
+	return item{typ: itemText, val: value}
 }
 
-// collect gathers the emitted items into a slice.
-func collect(t *lexTest) (items []item) {
-	noDigit := strings.HasPrefix(t.name, "no digit")
-	l := lex(t.input, noDigit)
-	for {
-		item := l.nextItem()
-		items = append(items, item)
-		if item.typ == itemEOF || item.typ == itemError {
-			break
-		}
-	}
-	return
+func tVariable(name string) item {
+	return item{typ: itemVariable, val: name}
 }
 
-func equal(i1, i2 []item, checkPos bool) bool {
+// equal compares items ignoring their position
+func equal(i1, i2 []item) bool {
 	if len(i1) != len(i2) {
 		return false
 	}
@@ -181,9 +250,32 @@ func equal(i1, i2 []item, checkPos bool) bool {
 		if i1[k].val != i2[k].val {
 			return false
 		}
-		if checkPos && i1[k].pos != i2[k].pos {
-			return false
-		}
 	}
 	return true
+}
+
+func Test_item_String(t *testing.T) {
+	type fields struct {
+		typ itemType
+		val string
+	}
+	tests := []struct {
+		name   string
+		fields fields
+		want   string
+	}{
+		{"dash operator", fields{itemDash, "-"}, `OP: "-"`},
+		{"error", fields{itemError, "error"}, `ERROR: "error"`},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			i := item{
+				typ: tt.fields.typ,
+				val: tt.fields.val,
+			}
+			if got := i.String(); got != tt.want {
+				t.Errorf("String() = %v, want %v", got, tt.want)
+			}
+		})
+	}
 }
