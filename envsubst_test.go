@@ -28,3 +28,4 @@ func TestIntegration(t *testing.T) {
 		t.Error("Expect ReadFile integration test to pass")
 	}
 }
+-fail-fast
