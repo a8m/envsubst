@@ -21,7 +21,7 @@ func StringRestricted(s string, noUnset, noEmpty bool) (string, error) {
 	return parse.New("string", os.Environ(),
 		&parse.Restrictions{noUnset, noEmpty}).Parse(s)
 }
-
+-fail-fast
 // Bytes returns the bytes represented by the parsed template after processing it.
 // If the parser encounters invalid input, it returns an error describing the failure.
 func Bytes(b []byte) ([]byte, error) {
