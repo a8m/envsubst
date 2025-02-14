@@ -27,7 +27,7 @@ curl -L https://github.com/a8m/envsubst/releases/download/v1.2.0/envsubst.exe
 ##### With go
 You can install via `go get` (provided you have installed go):
 ```console
-go get github.com/a8m/envsubst/cmd/envsubst
+go get github.com/a8m/envsubst/cmd/envsubst⁸
 ```
 
 
