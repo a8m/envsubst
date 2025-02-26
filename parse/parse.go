@@ -117,6 +117,9 @@ Loop:
 				continue
 			}
 			fallthrough
+        case itemIgnored:
+            textNode := NewText(strings.TrimPrefix(t.val, "$"))
+			p.nodes = append(p.nodes, textNode)
 		default:
 			textNode := NewText(t.val)
 			p.nodes = append(p.nodes, textNode)
