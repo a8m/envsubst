@@ -1,0 +1,70 @@
+# Make sure to check the documentation at https://goreleaser.com
+
+# The lines below are called `modelines`. See `:help modeline`
+# Feel free to remove those if you don't want/need to use them.
+# yaml-language-server: $schema=https://goreleaser.com/static/schema.json
+# vim: set ts=2 sw=2 tw=0 fo=cnqoj
+
+version: 2
+
+before:
+  hooks:
+    - go mod tidy
+
+builds:
+  - main: ./cmd/envsubst
+    env:
+      - CGO_ENABLED=0
+    goos:
+      - linux
+      - darwin
+      - windows
+    goarch:
+      - amd64
+      - arm64
+      - arm
+      - ppc64le
+      - s390x
+    goarm:
+      - "7"
+    flags:
+      - -trimpath
+    ldflags:
+      - -s -w
+
+archives:
+  - formats: binary
+    # This name template makes the OS and Arch compatible with the results of `uname`.
+    # Binaries for Windows amd64 are named envsubst.exe as fallback with previous versions.
+    name_template: >-
+      {{- if and (eq .Os "windows") (eq .Arch "amd64") -}}
+      {{- .ProjectName }}
+      {{- else -}}
+      {{- .ProjectName }}_{{ title .Os }}_
+      {{- if eq .Arch "amd64" }}x86_64
+      {{- else }}{{ .Arch }}{{ end }}
+      {{- if .Arm }}v{{ .Arm }}{{ end }}
+      {{- end -}}
+
+kos:
+  - base_image: gcr.io/distroless/static:nonroot
+    bare: true
+    preserve_import_paths: false
+    labels:
+      org.opencontainers.image.created: "{{ .Date }}"
+      org.opencontainers.image.revision: "{{ .ShortCommit }}"
+      org.opencontainers.image.source: "{{ .GitURL }}"
+      org.opencontainers.image.version: "{{ .Version }}"
+    platforms:
+      - all
+    repositories:
+      - "{{ .Env.KO_DOCKER_REPO }}"
+    tags:
+      - latest
+      - "{{ .Version }}"
+
+changelog:
+  use: github
+
+release:
+  mode: keep-existing
