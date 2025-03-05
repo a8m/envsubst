@@ -1,7 +1,8 @@
 # envsubst
+![GoVersion][goversion-url]
 [![GoDoc][godoc-img]][godoc-url]
 [![License][license-image]][license-url]
-[![Build status][travis-image]][travis-url]
+[![Build status][gha-image]][gha-url]
 [![Github All Releases][releases-image]][releases]
 
 > Environment variables substitution for Go. see docs [below](#docs)
@@ -103,5 +104,6 @@ MIT
 [godoc-img]: https://img.shields.io/badge/godoc-reference-blue.svg?style=for-the-badge
 [license-image]: https://img.shields.io/badge/license-MIT-blue.svg?style=for-the-badge
 [license-url]: LICENSE
-[travis-image]: https://img.shields.io/travis/a8m/envsubst.svg?style=for-the-badge
-[travis-url]: https://travis-ci.org/a8m/envsubst
+[gha-image]: https://img.shields.io/github/actions/workflow/status/a8m/envsubst/binaries.yml?style=for-the-badge
+[gha-url]: https://github.com/a8m/envsubst/actions/workflows/binaries.yml
+[goversion-url]: https://img.shields.io/github/go-mod/go-version/a8m/envsubst?style=for-the-badge
