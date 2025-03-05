@@ -7,16 +7,18 @@ jobs:
     runs-on: ubuntu-latest
     strategy:
       matrix:
-        go: [ '1.23', '1.24' ]
+        go:
+          - 1.23
+          - 1.24
 
     name: Go ${{ matrix.go }} testing
     steps:
-    - uses: actions/checkout@v2
+      - uses: actions/checkout@v4
 
-    - name: Set up Go
-      uses: actions/setup-go@v2
-      with:
-        go-version: ${{ matrix.go }}
+      - uses: actions/setup-go@v5
+        with:
+          go-version: ${{ matrix.go }}
+          cache: false
 
-    - name: Test
-      run: go test
+      - name: Test
+        run: go test
