@@ -1,6 +1,7 @@
 package parse
 
 import (
+	"strings"
 	"testing"
 )
 
@@ -30,6 +31,12 @@ var lexTests = []lexTest{
 	}},
 	{"var", "$hello", []item{
 		{itemVariable, 0, "$hello"},
+		tEOF,
+	}},
+	{"single char var", "${A}", []item{
+		tLeft,
+		{itemVariable, 0, "A"},
+		tRight,
 		tEOF,
 	}},
 	{"2 vars", "$hello $world", []item{
@@ -75,6 +82,28 @@ var lexTests = []lexTest{
 		{itemText, 0, " foo"},
 		tEOF,
 	}},
+	{"substitution-leading-dash-1", "bar ${BAR:--1} foo", []item{
+		{itemText, 0, "bar "},
+		tLeft,
+		{itemVariable, 0, "BAR"},
+		tColDash,
+		{itemText, 0, "-"},
+		{itemText, 0, "1"},
+		tRight,
+		{itemText, 0, " foo"},
+		tEOF,
+	}},
+	{"substitution-leading-dash-2", "bar ${BAR:=-1} foo", []item{
+		{itemText, 0, "bar "},
+		tLeft,
+		{itemVariable, 0, "BAR"},
+		tColEquals,
+		{itemText, 0, "-"},
+		{itemText, 0, "1"},
+		tRight,
+		{itemText, 0, " foo"},
+		tEOF,
+	}},
 	{"closing brace error", "hello-${world", []item{
 		{itemText, 0, "hello-"},
 		tLeft,
@@ -93,6 +122,29 @@ var lexTests = []lexTest{
 		{itemText, 8, "{HOME}"},
 		tEOF,
 	}},
+	{"no digit $1", "hello $1", []item{
+		{itemText, 0, "hello "},
+		{itemText, 7, "$1"},
+		tEOF,
+	}},
+	{"no digit $1ABC", "hello $1ABC", []item{
+		{itemText, 0, "hello "},
+		{itemText, 7, "$1"},
+		{itemText, 9, "ABC"},
+		tEOF,
+	}},
+	{"no digit ${2}", "hello ${2}", []item{
+		{itemText, 0, "hello "},
+		{itemText, 7, "${2"},
+		{itemText, 10, "}"},
+		tEOF,
+	}},
+	{"no digit ${2ABC}", "hello ${2ABC}", []item{
+		{itemText, 0, "hello "},
+		{itemText, 7, "${2"},
+		{itemText, 10, "ABC}"},
+		tEOF,
+	}},
 }
 
 func TestLex(t *testing.T) {
@@ -106,7 +158,8 @@ func TestLex(t *testing.T) {
 
 // collect gathers the emitted items into a slice.
 func collect(t *lexTest) (items []item) {
-	l := lex(t.input)
+	noDigit := strings.HasPrefix(t.name, "no digit")
+	l := lex(t.input, noDigit)
 	for {
 		item := l.nextItem()
 		items = append(items, item)
