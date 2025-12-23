@@ -47,6 +47,8 @@ var parseTests = []parseTest{
 	{"with text", "$BAR baz", "bar baz", errNone},
 	{"concatenated", "$BAR$FOO", "barfoo", errNone},
 	{"2 env var", "$BAR - $FOO", "bar - foo", errNone},
+	{"ignored var", "$$BAR - $$FOO", "$BAR - $FOO", errNone},
+	{"2 ignored vars", "$BAR - $FOO", "$BAR - $FOO", errNone},
 	{"invalid var", "$_ bar", "$_ bar", errNone},
 	{"invalid subst var", "${_} bar", "${_} bar", errNone},
 	{"value of $var", "${BAR}baz", "barbaz", errNone},
