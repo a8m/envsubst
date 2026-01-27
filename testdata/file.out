@@ -1,5 +1,7 @@
 foo: bar
 baz: baz
 env: dev
+curly_bar: bar
+curly: {"key":{"subkey":"subval"},"key2":"value2"}
 uri: http://bar.com/foo
 host: localhost
