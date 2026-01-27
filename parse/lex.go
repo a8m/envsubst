@@ -59,15 +59,16 @@ type stateFn func(*lexer) stateFn
 
 // lexer holds the state of the scanner
 type lexer struct {
-	input     string    // the string being lexed
-	state     stateFn   // the next lexing function to enter
-	pos       Pos       // current position in the input
-	start     Pos       // start position of this item
-	width     Pos       // width of last rune read from input
-	lastPos   Pos       // position of most recent item returned by nextItem
-	items     chan item // channel of lexed items
-	subsDepth int       // depth of substitution
-	noDigit   bool      // if the lexer skips variables that start with a digit
+	input      string    // the string being lexed
+	state      stateFn   // the next lexing function to enter
+	pos        Pos       // current position in the input
+	start      Pos       // start position of this item
+	width      Pos       // width of last rune read from input
+	lastPos    Pos       // position of most recent item returned by nextItem
+	items      chan item // channel of lexed items
+	subsDepth  int       // depth of substitution
+	braceDepth int       // depth of braces within default value
+	noDigit    bool      // if the lexer skips variables that start with a digit
 }
 
 // next returns the next rune in the input.
@@ -242,10 +243,18 @@ func lexSubstitutionOperator(l *lexer) stateFn {
 // lexSubstitution scans the elements inside substitution delimiters.
 func lexSubstitution(l *lexer) stateFn {
 	switch r := l.next(); {
+	case r == '{':
+		l.braceDepth++
+		l.emit(itemText)
 	case r == '}':
-		l.subsDepth--
-		l.emit(itemRightDelim)
-		return lexText
+		if l.braceDepth > 0 {
+			l.braceDepth--
+			l.emit(itemText)
+		} else {
+			l.subsDepth--
+			l.emit(itemRightDelim)
+			return lexText
+		}
 	case r == eof || isEndOfLine(r):
 		return l.errorf("closing brace expected")
 	case isAlphaNumeric(r) && strings.HasPrefix(l.input[l.lastPos:], "${"):

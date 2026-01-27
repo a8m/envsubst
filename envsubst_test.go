@@ -1,7 +1,6 @@
 package envsubst
 
 import (
-	"io/ioutil"
 	"os"
 	"testing"
 )
@@ -23,8 +22,9 @@ func TestIntegration(t *testing.T) {
 		t.Error("Expect bytes integration test to pass")
 	}
 	bytes, err = ReadFile("testdata/file.tmpl")
-	fexpected, err := ioutil.ReadFile("testdata/file.out")
+	fexpected, err := os.ReadFile("testdata/file.out")
 	if string(bytes) != string(fexpected) || err != nil {
+		t.Logf("output:\n%s\nexpected:\n%s\n", string(bytes), string(fexpected))
 		t.Error("Expect ReadFile integration test to pass")
 	}
 }

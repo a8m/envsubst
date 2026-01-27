@@ -1,5 +1,7 @@
 foo: $BAR
 baz: ${FOO:=baz}
 env: ${ENV:-dev}
+curly_bar: ${BAR:-{}}
+curly: ${ENV:-{"key":{"subkey":"subval"},"key2":"value2"}}
 uri: http://${BAR:=$BAZ}.com/foo
 host: ${BAR:+localhost}
