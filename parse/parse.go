@@ -32,10 +32,11 @@ var (
 
 // Parser type initializer
 type Parser struct {
-	Name     string // name of the processing template
-	Env      Env
-	Restrict *Restrictions
-	Mode     Mode
+	Name      string // name of the processing template
+	Env       Env
+	Restrict  *Restrictions
+	Mode      Mode
+	VarFilter *VarFilter // nil means all vars allowed; non-nil limits substitution
 	// parsing state;
 	lex       *lexer
 	token     [3]item // three-token lookahead
@@ -105,11 +106,12 @@ Loop:
 		case itemError:
 			return p.errorf(t.val)
 		case itemVariable:
-			varNode := NewVariable(strings.TrimPrefix(t.val, "$"), p.Env, p.Restrict)
+			varNode := NewVariable(strings.TrimPrefix(t.val, "$"), p.Env, p.Restrict, p.VarFilter)
+			varNode.OriginalSrc = t.val // Store original like "$VAR"
 			p.nodes = append(p.nodes, varNode)
 		case itemLeftDelim:
 			if p.peek().typ == itemVariable {
-				n, err := p.action()
+				n, err := p.action(t.pos) // Pass the position of ${
 				if err != nil {
 					return err
 				}
@@ -126,19 +128,35 @@ Loop:
 }
 
 // Parse substitution. first item is a variable.
-func (p *Parser) action() (Node, error) {
+// delimPos is the position of the opening ${
+func (p *Parser) action(delimPos Pos) (Node, error) {
 	var expType itemType
 	var defaultNode Node
-	varNode := NewVariable(p.next().val, p.Env, p.Restrict)
-Loop:
+	varNode := NewVariable(p.next().val, p.Env, p.Restrict, p.VarFilter)
 	for {
 		switch t := p.next(); t.typ {
 		case itemRightDelim:
-			break Loop
+			// Capture original source from ${ through }
+			// t.pos is the position of }, and we need to include it
+			endPos := int(t.pos) + len(t.val)
+			if endPos > len(p.lex.input) {
+				endPos = len(p.lex.input)
+			}
+			originalSrc := p.lex.input[delimPos:endPos]
+			node := &SubstitutionNode{
+				NodeType:    NodeSubstitution,
+				ExpType:     expType,
+				Variable:    varNode,
+				Default:     defaultNode,
+				OriginalSrc: originalSrc,
+			}
+			return node, nil
 		case itemError:
 			return nil, p.errorf(t.val)
 		case itemVariable:
-			defaultNode = NewVariable(strings.TrimPrefix(t.val, "$"), p.Env, p.Restrict)
+			defVar := NewVariable(strings.TrimPrefix(t.val, "$"), p.Env, p.Restrict, p.VarFilter)
+			defVar.OriginalSrc = t.val
+			defaultNode = defVar
 		case itemText:
 			n := NewText(t.val)
 		Text:
@@ -156,7 +174,6 @@ Loop:
 			expType = t.typ
 		}
 	}
-	return &SubstitutionNode{NodeSubstitution, expType, varNode, defaultNode}, nil
 }
 
 func (p *Parser) errorf(s string) error {

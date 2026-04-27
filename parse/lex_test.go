@@ -110,15 +110,16 @@ var lexTests = []lexTest{
 		{itemVariable, 0, "world"},
 		{itemError, 0, "closing brace expected"},
 	}},
-	{"escaping $$var", "hello $$HOME", []item{
+	// "$$" is preserved as literal text in this fork (see lex.go).
+	{"literal $$var", "hello $$HOME", []item{
 		{itemText, 0, "hello "},
-		{itemText, 7, "$"},
+		{itemText, 6, "$$"},
 		{itemText, 8, "HOME"},
 		tEOF,
 	}},
-	{"escaping $${subst}", "hello $${HOME}", []item{
+	{"literal $${subst}", "hello $${HOME}", []item{
 		{itemText, 0, "hello "},
-		{itemText, 7, "$"},
+		{itemText, 6, "$$"},
 		{itemText, 8, "{HOME}"},
 		tEOF,
 	}},

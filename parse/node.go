@@ -2,7 +2,30 @@ package parse
 
 import (
 	"fmt"
+	"strings"
 )
+
+// VarFilter provides filtering for variable substitution by prefix.
+// A nil filter allows all variables. A non-nil filter only allows
+// variables whose names start with one of the specified prefixes.
+type VarFilter struct {
+	Prefixes []string // Prefix patterns to match (e.g., "ARGOCD_ENV_")
+}
+
+// IsAllowed checks if a variable name is allowed by this filter.
+// Returns true if the variable matches any prefix pattern.
+// A nil filter allows all variables.
+func (f *VarFilter) IsAllowed(varName string) bool {
+	if f == nil {
+		return true
+	}
+	for _, prefix := range f.Prefixes {
+		if strings.HasPrefix(varName, prefix) {
+			return true
+		}
+	}
+	return false
+}
 
 type Node interface {
 	Type() NodeType
@@ -39,16 +62,32 @@ func (t *TextNode) String() (string, error) {
 
 type VariableNode struct {
 	NodeType
-	Ident    string
-	Env      Env
-	Restrict *Restrictions
+	Ident       string
+	Env         Env
+	Restrict    *Restrictions
+	VarFilter   *VarFilter // nil means all vars allowed
+	OriginalSrc string     // Original source like "$VAR" for literal output when not allowed
 }
 
-func NewVariable(ident string, env Env, restrict *Restrictions) *VariableNode {
-	return &VariableNode{NodeVariable, ident, env, restrict}
+func NewVariable(ident string, env Env, restrict *Restrictions, varFilter *VarFilter) *VariableNode {
+	return &VariableNode{
+		NodeType:  NodeVariable,
+		Ident:     ident,
+		Env:       env,
+		Restrict:  restrict,
+		VarFilter: varFilter,
+	}
 }
 
 func (t *VariableNode) String() (string, error) {
+	// If filtering is enabled and this var is not allowed,
+	// return original source as literal text
+	if t.VarFilter != nil && !t.VarFilter.IsAllowed(t.Ident) {
+		if t.OriginalSrc != "" {
+			return t.OriginalSrc, nil
+		}
+		return "$" + t.Ident, nil
+	}
 	if err := t.validateNoUnset(); err != nil {
 		return "", err
 	}
@@ -79,12 +118,22 @@ func (t *VariableNode) validateNoEmpty(value string) error {
 
 type SubstitutionNode struct {
 	NodeType
-	ExpType  itemType
-	Variable *VariableNode
-	Default  Node // Default could be variable or text
+	ExpType     itemType
+	Variable    *VariableNode
+	Default     Node   // Default could be variable or text
+	OriginalSrc string // Original source like "${VAR:-default}" for literal output when not allowed
 }
 
 func (t *SubstitutionNode) String() (string, error) {
+	// If filtering is enabled and this var is not allowed,
+	// return original source as literal text
+	if t.Variable.VarFilter != nil && !t.Variable.VarFilter.IsAllowed(t.Variable.Ident) {
+		if t.OriginalSrc != "" {
+			return t.OriginalSrc, nil
+		}
+		// Fallback: reconstruct basic form
+		return "${" + t.Variable.Ident + "}", nil
+	}
 	if t.ExpType >= itemPlus && t.Default != nil {
 		switch t.ExpType {
 		case itemColonDash, itemColonEquals:

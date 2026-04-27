@@ -6,6 +6,52 @@
 
 > Environment variables substitution for Go. see docs [below](#docs)
 
+## About this fork
+
+This is a fork of [a8m/envsubst](https://github.com/a8m/envsubst) tuned for use as
+an [ArgoCD ConfigManagementPlugin](https://argo-cd.readthedocs.io/en/stable/operator-manual/config-management-plugins/)
+rendering step. Two deliberate deviations from upstream:
+
+1. **`-prefix` flag.** Restrict substitution to variables matching a given prefix
+   (e.g. `-prefix ARGOCD_ENV_`). Variable references that don't match the prefix
+   are left as literal text. This keeps the plugin from accidentally substituting
+   anything that happens to look like a shell variable in rendered Kubernetes
+   manifests.
+
+2. **`$$` is preserved as literal text, not collapsed to `$`.** Upstream a8m
+   treats `$$` as a shell-style escape (so `$$VAR` produces literal `$VAR`).
+   That semantics silently mangles Kubernetes manifests whose contents quote
+   shell or kubelet idioms verbatim — most notably the KEDA Helm chart, which
+   embeds Kubernetes' own env-var-expansion docs in CRD schema descriptions
+   ("Double `$$` are reduced to a single `$`"). With upstream behavior, ArgoCD
+   shows perpetual `$$ → $` drift on synced resources. This fork emits `$$` as
+   literal text.
+
+The fork is intentionally narrow: same parser, same library API, same
+restrictions (`-no-unset`, `-no-empty`, `-fail-fast`). **Shell-style parameter
+expansion operators are preserved** — `${VAR:-default}`, `${VAR:=default}`,
+`${VAR:+alt}`, `${VAR:?err}`, `${VAR-default}`, `${VAR=default}`,
+`${VAR+alt}`, `${VAR?err}` all work as in upstream. Only the `$$` escape
+behavior is dropped. If you want shell-style `$$` escapes, use upstream
+[a8m/envsubst](https://github.com/a8m/envsubst) instead.
+
+#### Combining literal `$$` with a substitution
+
+After this change, `$$VAR` does **not** substitute `VAR` — both `$` characters
+are consumed as literal text and `VAR` becomes plain text without a leading `$`
+to mark it as a variable reference. The same applies to `$${VAR}`: the `$$`
+consumes both dollars, leaving `{VAR}` as plain text rather than a substitution.
+
+To emit literal `$$` followed by a substituted variable, use one of:
+
+```
+input:  $$$ARGOCD_ENV_FOO    →  output: $$<value-of-FOO>   (triple-dollar; third $ starts the variable)
+input:  $$ ${ARGOCD_ENV_FOO} →  output: $$ <value-of-FOO>  (space-separated)
+
+input:  $$ARGOCD_ENV_FOO     →  output: $$ARGOCD_ENV_FOO   (no substitution)
+input:  $${ARGOCD_ENV_FOO}   →  output: $${ARGOCD_ENV_FOO} (no substitution)
+```
+
 #### Installation:
 
 ##### From binaries
@@ -48,6 +94,7 @@ The flags and their restrictions are:
 | ------------| -------------- | ------------ | ------------ |
 |`-i`  | input file  | `string \| stdin` | `stdin`
 |`-o`  | output file | `string \| stdout` |  `stdout`
+|`-prefix`  | only substitute variables with this prefix; others are left as literal text (e.g. `-prefix ARGOCD_ENV_`) | `string` | `""` (substitute all)
 |`-no-digit`  | do not replace variables starting with a digit, e.g. $1 and ${1} | `flag` |  `false` 
 |`-no-unset`  | fail if a variable is not set | `flag` |  `false` 
 |`-no-empty`  | fail if a variable is set but empty | `flag` | `false`
@@ -86,7 +133,7 @@ func main() {
 |`${var:=$DEFAULT}` | If var not set or is empty, evaluate expression as $DEFAULT
 |`${var+$OTHER}`    | If var set, evaluate expression as $OTHER, otherwise as empty string
 |`${var:+$OTHER}`   | If var set, evaluate expression as $OTHER, otherwise as empty string
-|`$$var`            | Escape expressions. Result will be `$var`. 
+|`$$`               | Preserved as literal `$$`. **Differs from upstream a8m**, which treats `$$` as a shell-style escape collapsing to `$`. See [About this fork](#about-this-fork).
 
 <sub>Most of the rows in this table were taken from [here](http://www.tldp.org/LDP/abs/html/refcards.html#AEN22728)</sub>
 
