@@ -154,6 +154,7 @@ Loop:
 			defaultNode = n
 		default:
 			expType = t.typ
+			defaultNode = NewText("")
 		}
 	}
 	return &SubstitutionNode{NodeSubstitution, expType, varNode, defaultNode}, nil
