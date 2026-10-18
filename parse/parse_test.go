@@ -73,6 +73,26 @@ var parseTests = []parseTest{
 	// single letter
 	{"gh-issue-43-1", "${A}", "AAA", errNone},
 
+	// Explicit empty operands are defaults too (issue #61).
+	{"unset with empty default -", "${NOTSET-}", "", errNone},
+	{"unset with empty default =", "${NOTSET=}", "", errNone},
+	{"unset with empty default :-", "${NOTSET:-}", "", errNone},
+	{"unset with empty default :=", "${NOTSET:=}", "", errNone},
+	{"empty with empty default -", "${EMPTY-}", "", errEmpty},
+	{"empty with empty default =", "${EMPTY=}", "", errEmpty},
+	{"empty with empty default :-", "${EMPTY:-}", "", errNone},
+	{"empty with empty default :=", "${EMPTY:=}", "", errNone},
+	{"set with empty default -", "${BAR-}", "bar", errNone},
+	{"set with empty default =", "${BAR=}", "bar", errNone},
+	{"set with empty default :-", "${BAR:-}", "bar", errNone},
+	{"set with empty default :=", "${BAR:=}", "bar", errNone},
+	{"unset with empty alternate +", "${NOTSET+}", "", errNone},
+	{"unset with empty alternate :+", "${NOTSET:+}", "", errNone},
+	{"empty with empty alternate +", "${EMPTY+}", "", errNone},
+	{"empty with empty alternate :+", "${EMPTY:+}", "", errNone},
+	{"set with empty alternate +", "${BAR+}", "", errNone},
+	{"set with empty alternate :+", "${BAR:+}", "", errNone},
+
 	// bad substitution
 	{"closing brace expected", "hello ${", "", errAll},
 
