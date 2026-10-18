@@ -57,7 +57,8 @@ var parseTests = []parseTest{
 	{"$var not set or empty :-", "${EMPTY:-$BAR}", "bar", errNone},
 	{"$var not set or empty :=", "${EMPTY:=$BAR}", "bar", errNone},
 	{"if $var set evaluate expression as $other +", "${EMPTY+hello}", "hello", errNone},
-	{"if $var set evaluate expression as $other :+", "${EMPTY:+hello}", "hello", errNone},
+	{"if $var set evaluate expression as $other :+", "${BAR:+hello}", "hello", errNone},
+	{"issue #53: empty variable with nonempty alternate", "${EMPTY:+hello}", "", errNone},
 	{"if $var not set, use empty string +", "${NOTSET+hello}", "", errNone},
 	{"if $var not set, use empty string :+", "${NOTSET:+hello}", "", errNone},
 	{"multi line string", "hello $BAR\nhello ${EMPTY:=$FOO}", "hello bar\nhello foo", errNone},
@@ -115,7 +116,7 @@ var parseTests = []parseTest{
 	{"$var empty and $DEFAULT not set =", "${EMPTY=$NOTSET}", "", errEmpty},
 	{"$var empty and $DEFAULT not set :=", "${EMPTY:=$NOTSET}", "", errUnset},
 	{"$var empty and $OTHER not set +", "${EMPTY+$NOTSET}", "", errUnset},
-	{"$var empty and $OTHER not set :+", "${EMPTY:+$NOTSET}", "", errUnset},
+	{"$var empty and $OTHER not set :+", "${EMPTY:+$NOTSET}", "", errNone},
 
 	{"$var not set and $DEFAULT empty -", "${NOTSET-$EMPTY}", "", errEmpty},
 	{"$var not set and $DEFAULT empty :-", "${NOTSET:-$EMPTY}", "", errEmpty},
@@ -129,7 +130,7 @@ var parseTests = []parseTest{
 	{"$var and $DEFAULT empty =", "${EMPTY=$ALSO_EMPTY}", "", errEmpty},
 	{"$var and $DEFAULT empty :=", "${EMPTY:=$ALSO_EMPTY}", "", errEmpty},
 	{"$var and $OTHER empty +", "${EMPTY+$ALSO_EMPTY}", "", errEmpty},
-	{"$var and $OTHER empty :+", "${EMPTY:+$ALSO_EMPTY}", "", errEmpty},
+	{"$var and $OTHER empty :+", "${EMPTY:+$ALSO_EMPTY}", "", errNone},
 
 	// escaping.
 	{"escape $$var", "FOO $$BAR BAZ", "FOO $BAR BAZ", errNone},
