@@ -92,8 +92,13 @@ func (t *SubstitutionNode) String() (string, error) {
 				return s, nil
 			}
 			return t.Default.String()
-		case itemPlus, itemColonPlus:
+		case itemPlus:
 			if t.Variable.isSet() {
+				return t.Default.String()
+			}
+			return "", nil
+		case itemColonPlus:
+			if t.Variable.isSet() && t.Variable.Env.Get(t.Variable.Ident) != "" {
 				return t.Default.String()
 			}
 			return "", nil
