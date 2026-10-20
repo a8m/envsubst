@@ -14,6 +14,7 @@ import (
 var (
 	input    = flag.String("i", "", "")
 	output   = flag.String("o", "", "")
+	prefix   = flag.String("prefix", "", "")
 	noDigit  = flag.Bool("no-digit", false, "")
 	noUnset  = flag.Bool("no-unset", false, "")
 	noEmpty  = flag.Bool("no-empty", false, "")
@@ -25,6 +26,8 @@ Options:
   -i         Specify file input, otherwise use last argument as input file.
              If no input file is specified, read from stdin.
   -o         Specify file output. If none is specified, write to stdout.
+  -prefix    Only substitute variables with this prefix (e.g., -prefix ARGOCD_ENV_).
+             Other variable references are left as literal text in the output.
   -no-digit  Do not replace variables starting with a digit. e.g. $1 and ${1}
   -no-unset  Fail if a variable is not set.
   -no-empty  Fail if a variable is set but empty.
@@ -33,7 +36,7 @@ Options:
 
 func main() {
 	flag.Usage = func() {
-		fmt.Fprint(os.Stderr, fmt.Sprintf(usage))
+		fmt.Fprint(os.Stderr, usage)
 	}
 	flag.Parse()
 	var reader *bufio.Reader
@@ -82,7 +85,22 @@ func main() {
 		parserMode = parse.Quick
 	}
 	restrictions := &parse.Restrictions{*noUnset, *noEmpty, *noDigit}
-	result, err := (&parse.Parser{Name: "string", Env: os.Environ(), Restrict: restrictions, Mode: parserMode}).Parse(data)
+
+	// Build the variable filter if prefix is specified
+	var varFilter *parse.VarFilter
+	if *prefix != "" {
+		varFilter = &parse.VarFilter{
+			Prefixes: []string{*prefix},
+		}
+	}
+
+	result, err := (&parse.Parser{
+		Name:      "string",
+		Env:       os.Environ(),
+		Restrict:  restrictions,
+		Mode:      parserMode,
+		VarFilter: varFilter,
+	}).Parse(data)
 	if err != nil {
 		errorAndExit(err)
 	}
@@ -97,7 +115,7 @@ func main() {
 
 func usageAndExit(msg string) {
 	if msg != "" {
-		fmt.Fprintf(os.Stderr, msg)
+		fmt.Fprintf(os.Stderr, "%s", msg)
 		fmt.Fprintf(os.Stderr, "\n\n")
 	}
 	flag.Usage()

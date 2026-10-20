@@ -157,8 +157,13 @@ Loop:
 				l.next()
 				l.emit(itemText)
 			case r == '$':
-				// ignore the previous '$'.
-				l.ignore()
+				// preserve "$$" as literal text. Upstream a8m/envsubst treats
+				// "$$" as a shell-style escape that collapses to "$", but that
+				// silently mangles inputs that contain literal "$$" (e.g. KEDA
+				// CRD descriptions quoting Kubernetes' env-var-expansion docs:
+				// "Double $$ are reduced to a single $"). Since this fork is
+				// scoped to ArgoCD CMP rendering with --prefix filtering, we
+				// preserve "$$" verbatim instead of escaping it.
 				l.next()
 				l.emit(itemText)
 			case r == '{':
