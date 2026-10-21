@@ -64,19 +64,7 @@ func main() {
 		}
 		data += line
 	}
-	var (
-		err  error
-		file *os.File
-	)
-	if *output != "" {
-		file, err = os.Create(*output)
-		if err != nil {
-			usageAndExit("Error to create the wanted output file.")
-		}
-	} else {
-		file = os.Stdout
-	}
-	// Parse input string
+	// Parse input before opening the output file so restriction errors don't truncate it.
 	parserMode := parse.AllErrors
 	if *failFast {
 		parserMode = parse.Quick
@@ -85,6 +73,15 @@ func main() {
 	result, err := (&parse.Parser{Name: "string", Env: os.Environ(), Restrict: restrictions, Mode: parserMode}).Parse(data)
 	if err != nil {
 		errorAndExit(err)
+	}
+	var file *os.File
+	if *output != "" {
+		file, err = os.Create(*output)
+		if err != nil {
+			usageAndExit("Error to create the wanted output file.")
+		}
+	} else {
+		file = os.Stdout
 	}
 	if _, err := file.WriteString(result); err != nil {
 		filename := *output
