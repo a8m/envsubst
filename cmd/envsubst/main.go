@@ -52,17 +52,10 @@ func main() {
 		reader = bufio.NewReader(os.Stdin)
 	}
 	// Collect input data.
-	var data string
-	for {
-		line, err := reader.ReadString('\n')
-		if err != nil {
-			if err == io.EOF {
-				data += line
-				break
-			}
-			usageAndExit("Failed to read input.")
-		}
-		data += line
+	b, readErr := io.ReadAll(reader)
+	data := string(b)
+	if readErr != nil {
+		usageAndExit("Failed to read input.")
 	}
 	var (
 		err  error

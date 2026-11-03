@@ -68,7 +68,7 @@ func (p *Parser) Parse(text string) (string, error) {
 			errs = append(errs, err)
 		}
 	}
-	var out string
+	var out strings.Builder
 	for _, node := range p.nodes {
 		s, err := node.String()
 		if err != nil {
@@ -79,7 +79,7 @@ func (p *Parser) Parse(text string) (string, error) {
 				errs = append(errs, err)
 			}
 		}
-		out += s
+		out.WriteString(s)
 	}
 	if len(errs) > 0 {
 		var b strings.Builder
@@ -91,7 +91,7 @@ func (p *Parser) Parse(text string) (string, error) {
 		}
 		return "", errors.New(b.String())
 	}
-	return out, nil
+	return out.String(), nil
 }
 
 // parse is the top-level parser for the template.
