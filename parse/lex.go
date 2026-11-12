@@ -40,6 +40,7 @@ const (
 	itemColonEquals // colon-equals (':=')
 	itemColonDash   // colon-dash(':-')
 	itemColonPlus   // colon-plus(':+')
+    itemIgnored     // double dollar ('$$') variable should be ignored
 	itemVariable    // variable starting with '$', such as '$hello' or '$1'
 	itemLeftDelim   // left action delimiter '${'
 	itemRightDelim  // right action delimiter '}'
@@ -194,6 +195,9 @@ func lexVariable(l *lexer) stateFn {
 	var r rune
 	for {
 		r = l.next()
+        if r == '$' {
+            l.emit(itemIgnored)
+        }
 		if !isAlphaNumeric(r) {
 			l.backup()
 			break

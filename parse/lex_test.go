@@ -45,6 +45,15 @@ var lexTests = []lexTest{
 		{itemVariable, 0, "$world"},
 		tEOF,
 	}},
+	{"ignored var", "$$hello", []item{
+		{itemIgnored, 0, "$$hello"},
+		tEOF,
+	}},
+	{"2 ignored vars", "$$hello$$world", []item{
+		{itemIgnored, 0, "$$hello"},
+        {itemIgnored, 0, "$$world"},
+		tEOF,
+	}},
 	{"substitution-1", "bar ${BAR}", []item{
 		{itemText, 0, "bar "},
 		tLeft,
